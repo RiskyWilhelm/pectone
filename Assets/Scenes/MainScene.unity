@@ -221,8 +221,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 179124181}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.25340128, y: 0.00000007626167, z: -0.000000013616238, w: 0.9673613}
-  m_LocalPosition: {x: 0, y: 5.625, z: -10}
+  m_LocalRotation: {x: 0.09735491, y: -0.0000000012092009, z: 1.1828352e-10, w: 0.99524975}
+  m_LocalPosition: {x: 0, y: 3.2435203, z: -16.420456}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -272,7 +272,7 @@ MonoBehaviour:
   TargetOffset: {x: 0, y: 0, z: 0}
   TrackerSettings:
     BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
+    PositionDamping: {x: 0.1, y: 0.1, z: 0.1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
@@ -292,31 +292,31 @@ MonoBehaviour:
   RecenteringTarget: 2
   HorizontalAxis:
     Value: 0
-    Center: 0
+    Center: -0
     Range: {x: -180, y: 180}
     Wrap: 1
     Recentering:
-      Enabled: 0
-      Wait: 1
+      Enabled: 1
+      Wait: 5
       Time: 1
     Restrictions: 0
   VerticalAxis:
-    Value: 17.5
-    Center: 17.5
+    Value: 0
+    Center: 0
     Range: {x: -10, y: 45}
     Wrap: 0
     Recentering:
-      Enabled: 0
-      Wait: 1
-      Time: 2
+      Enabled: 1
+      Wait: 5
+      Time: 1
     Restrictions: 0
   RadialAxis:
-    Value: 2.5
+    Value: 5
     Center: 2.5
     Range: {x: 1, y: 5}
     Wrap: 0
     Recentering:
-      Enabled: 1
+      Enabled: 0
       Wait: 1
       Time: 2
     Restrictions: 0
@@ -386,22 +386,22 @@ MonoBehaviour:
       Input:
         valueController: {fileID: 179124189}
         cancelDeltaTime: 0
-        gain: 1
+        gain: 3.14
       InputValue: 0
       Driver:
-        AccelTime: 0.2
-        DecelTime: 0.2
+        AccelTime: 0.1
+        DecelTime: 0.1
     - Name: Look Orbit Y
       Owner: {fileID: 179124186}
       Enabled: 1
       Input:
         valueController: {fileID: 179124189}
         cancelDeltaTime: 0
-        gain: -1
+        gain: -3.14
       InputValue: 0
       Driver:
-        AccelTime: 0.2
-        DecelTime: 0.2
+        AccelTime: 0.1
+        DecelTime: 0.1
     - Name: Orbit Scale
       Owner: {fileID: 179124186}
       Enabled: 0
@@ -709,8 +709,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.25340128, y: 0.000000017693013, z: -0.0000000046347024, w: 0.9673613}
-  m_LocalPosition: {x: 0, y: 5.625, z: -10}
+  m_LocalRotation: {x: 0.09735491, y: -0.0000000012092009, z: 1.1828352e-10, w: 0.99524975}
+  m_LocalPosition: {x: 0, y: 3.2435203, z: -16.420456}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1127,6 +1127,7 @@ GameObject:
   - component: {fileID: 677029585}
   - component: {fileID: 677029586}
   - component: {fileID: 677029583}
+  - component: {fileID: 677029587}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1314,9 +1315,24 @@ MonoBehaviour:
     inverseRotation: 1
     spanOriginAngleDegree: 0
     maxSpanAngleDegreeHalf: 75
+  wingGlidingForce: 7.5
   wingFlappingForce: 50
-  wingFlappingSpeed: 15
+  wingClosingSpeed: 10
   wingControllerJoystick: {fileID: 343971014}
+--- !u!114 &677029587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677029581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2dc4028284cd98489ff7773545cd26a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  desiredAmount: 144
+  useScreenHZ: 1
 --- !u!1 &750316438
 GameObject:
   m_ObjectHideFlags: 0

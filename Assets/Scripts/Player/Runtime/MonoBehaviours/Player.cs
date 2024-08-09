@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Windows;
 
 // TODO: Do gliding when wing snap is in certain angle
 public sealed partial class Player : StateMachineDrivenPlayerBase
@@ -54,10 +53,10 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 		// Update
 		/// <summary> Adds force to down vector of rigidbody based on new wing span value </summary>
-		public void SetWingSpan01WithRelativeForce(Rigidbody controlRigidbody, float newWingSpan01, float downForce, ForceMode forceMode = ForceMode.Force)
+		public void SetWingSpan01WithRelativeForce(Rigidbody controlRigidbody, float newWingSpan01, float upForce, ForceMode forceMode = ForceMode.Force)
 		{
 			var wingSpanChange01 = (newWingSpan01 - LastSpan01);
-			controlRigidbody.AddRelativeForce(Vector3.down * (downForce * wingSpanChange01), forceMode);
+			controlRigidbody.AddRelativeForce(Vector3.down * (upForce * wingSpanChange01), forceMode);
 			Span01 = newWingSpan01;
 		}
 
@@ -106,10 +105,13 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	private Wing leftWing;
 
 	[SerializeField]
+	private float wingGlidingForce;
+
+	[SerializeField]
 	private float wingFlappingForce;
 
 	[SerializeField]
-	private float wingFlappingSpeed;
+	private float wingClosingSpeed;
 
 	[SerializeField]
 	private CustomizableJoystick wingControllerJoystick;
@@ -130,7 +132,7 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	protected override void Update()
 	{
 		if (!wingControllerJoystick.IsGettingInteracted)
-			CloseWingsByFlappingSpeed();
+			CloseWingsBySpeed();
 
 		base.Update();
 	}
@@ -154,13 +156,21 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	public void OnWingControllerJoystickInteractedFixed()
 	{
 		var input = wingControllerJoystick.Input;
-		var isInputMovedDownwards = (input.y < rightWing.Span01) || (input.y < rightWing.Span01);
-		var newWingSpan01 = Mathf.MoveTowards(rightWing.Span01, input.y, wingFlappingSpeed * Time.deltaTime);
+		if ((input == wingControllerJoystick.LastInput) && !IsGrounded())
+		{
+			var glidingPowerFromWingSpan = Mathf.Clamp01(1f - Math.Abs(input.y));
 
+			SelfRigidbody.AddRelativeForce(Vector3.up * (glidingPowerFromWingSpan * wingGlidingForce), ForceMode.Acceleration);
+			rightWing.Span01 = input.y;
+			leftWing.Span01 = input.y;
+			return;
+		}
+
+		var isInputMovedDownwards = (input.y < rightWing.Span01) || (input.y < rightWing.Span01);
 		if (isInputMovedDownwards)
 		{
-			rightWing.SetWingSpan01WithRelativeForce(SelfRigidbody, newWingSpan01, wingFlappingForce, ForceMode.Acceleration);
-			leftWing.SetWingSpan01WithRelativeForce(SelfRigidbody, newWingSpan01, wingFlappingForce, ForceMode.Acceleration);
+			rightWing.SetWingSpan01WithRelativeForce(SelfRigidbody, input.y, wingFlappingForce, ForceMode.Acceleration);
+			leftWing.SetWingSpan01WithRelativeForce(SelfRigidbody, input.y, wingFlappingForce, ForceMode.Acceleration);
 			return;
 		}
 
@@ -174,9 +184,9 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 		leftWing.Span01 = -1f;
 	}
 
-	public void CloseWingsByFlappingSpeed()
+	public void CloseWingsBySpeed()
 	{
-		var newWingSpan01 = Mathf.MoveTowards(rightWing.Span01, -1f, wingFlappingSpeed * Time.deltaTime);
+		var newWingSpan01 = Mathf.MoveTowards(rightWing.Span01, -1f, wingClosingSpeed * Time.deltaTime);
 
 		rightWing.Span01 = newWingSpan01;
 		leftWing.Span01 = newWingSpan01;

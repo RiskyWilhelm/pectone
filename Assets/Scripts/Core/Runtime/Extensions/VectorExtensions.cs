@@ -254,26 +254,37 @@ public static class VectorExtensions
 		return isFoundNearest;
 	}
 
+	/// <returns> Normalized vector </returns>
+	public static Vector2 GetWorldDirectionTo(this Vector2 a, Vector2 b)
+	{
+		return (b - a).normalized;
+	}
+
+	/// <inheritdoc cref="GetWorldDirectionTo(Vector2, Vector2)"/>
+	public static Vector3 GetWorldDirectionTo(this Vector3 a, Vector3 b)
+	{
+		return (b - a).normalized;
+	}
+
+	/// <inheritdoc cref="GetWorldDirectionTo(Vector2, Vector2)"/>
+	public static Vector4 GetWorldDirectionTo(this Vector4 a, Vector4 b)
+	{
+		return (b - a).normalized;
+	}
+
+	/// <returns> Non-normalized rotated original vector </returns>
 	public static Vector2 GetDirectionWithMagnitudeTo(this Vector2 a, Vector2 b)
 	{
 		return (b - a);
 	}
 
-	public static Vector2Int GetDirectionWithMagnitudeTo(this Vector2Int a, Vector2Int b)
-	{
-		return (b - a);
-	}
-
+	/// <inheritdoc cref="GetDirectionWithMagnitudeTo(Vector2, Vector2)"/>
 	public static Vector3 GetDirectionWithMagnitudeTo(this Vector3 a, Vector3 b)
 	{
 		return (b - a);
 	}
 
-	public static Vector3Int GetDirectionWithMagnitudeTo(this Vector3Int a, Vector3Int b)
-	{
-		return (b - a);
-	}
-
+	/// <inheritdoc cref="GetDirectionWithMagnitudeTo(Vector2, Vector2)"/>
 	public static Vector4 GetDirectionWithMagnitudeTo(this Vector4 a, Vector4 b)
 	{
 		return (b - a);
@@ -292,6 +303,16 @@ public static class VectorExtensions
 	public static bool IsNormalized(this Vector3 a)
 	{
 		return Mathf.Approximately(a.sqrMagnitude, 1.0f);
+	}
+
+	public static bool IsNormalizedOrZero(this Vector2 a)
+	{
+		return (a == Vector2.zero) || IsNormalized(a);
+	}
+
+	public static bool IsNormalizedOrZero(this Vector3 a)
+	{
+		return (a == Vector3.zero) || IsNormalized(a);
 	}
 
 	public static bool IsNormalized(this Vector4 a)

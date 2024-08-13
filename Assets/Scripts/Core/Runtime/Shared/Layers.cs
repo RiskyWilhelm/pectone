@@ -6,6 +6,7 @@ public static class Layers
     public const int Ground = 3;
     public const int Water = 4;
     public const int UI = 5;
+    public const int Trigger = 6;
 
     public static class Mask
     {
@@ -15,5 +16,6 @@ public static class Layers
         public const int Ground = 8;
         public const int Water = 16;
         public const int UI = 32;
+        public const int Trigger = 64;
     }
 }

@@ -9,10 +9,6 @@ public sealed partial class Movable : MonoBehaviour
 	#region Movable Movement
 
 	[SerializeField]
-	[Tooltip("Stay in FixedUpdate if you dont have a reason to switch other")]
-	private UpdateType updateType = UpdateType.FixedUpdate;
-
-	[SerializeField]
 	private ForceMode movementForceMode = ForceMode.Acceleration;
 
     public Vector3 movementForce;
@@ -20,8 +16,6 @@ public sealed partial class Movable : MonoBehaviour
 	[Min(0)]
 	[Tooltip("Optional. Set to zero if no velocity limitation wanted")]
 	public Vector3 maxMovementVelocity;
-
-	public bool allowVerticalMovement;
 
 	[field: SerializeField]
 	public Rigidbody SelfRigidbody
@@ -41,13 +35,6 @@ public sealed partial class Movable : MonoBehaviour
 	public Vector3 NormalizedMovingDirection
 	{
 		get => _normalizedMovingDirection;
-		set
-		{
-			if ((value != Vector3.zero) && !value.IsNormalized())
-				throw new Exception("Value must be normalized");
-
-			_normalizedMovingDirection = value;
-		}
 	}
 
 
@@ -65,32 +52,16 @@ public sealed partial class Movable : MonoBehaviour
 	// Update
 	private void Update()
 	{
-		if (updateType is UpdateType.Update)
-		{
-			ApplyForceToDirection();
-			LimitVelocity();
-		}
+		Debug.DrawLine(this.transform.position, this.transform.position + (NormalizedMovingDirection * 10f), Color.yellow);
 	}
 
 	private void FixedUpdate()
 	{
-		if (updateType is UpdateType.FixedUpdate)
-		{
-			ApplyForceToDirection();
-			LimitVelocity();
-		}
+		ApplyForceToDirectionFixed();
+		LimitVelocity();
 	}
 
-	private void LateUpdate()
-	{
-		if (updateType is UpdateType.LateUpdate)
-		{
-			ApplyForceToDirection();
-			LimitVelocity();
-		}
-	}
-
-	private void ApplyForceToDirection()
+	private void ApplyForceToDirectionFixed()
 	{
 		SelfRigidbody.AddForce(Vector3.Scale(movementForce, _normalizedMovingDirection), movementForceMode);
 	}
@@ -111,40 +82,58 @@ public sealed partial class Movable : MonoBehaviour
 		SelfRigidbody.linearVelocity = updatedLinearVelocity;
 	}
 
-	public void SetMovingDirection(Vector2 normalizedWorldDir)
+	public void SetMovingDirection(Vector3 normalizedDirection)
 	{
-		NormalizedMovingDirection = new Vector3(normalizedWorldDir.x, 0f, normalizedWorldDir.y);
+		if (!normalizedDirection.IsNormalizedOrZero())
+			throw new Exception("Only normalized and zero vector is accepted");
+
+		_normalizedMovingDirection = normalizedDirection;
 	}
+
+	public void SetMovingDirection(Vector2 normalizedDirection)
+		=> SetMovingDirection(new Vector3(normalizedDirection.x, normalizedDirection.y, 0f));
 
 	public void SetMovingDirectionFromInput(CallbackContext normalizedContext)
 		=> SetMovingDirection(normalizedContext.ReadValue<Vector2>());
 
-	// TODO: This code repetities at Player.cs
 	/// <summary> 
-	/// Manipulates the <paramref name="normalizedWorldDirection"/> based on <paramref name="relativeTo"/> direction.
+	/// Manipulates the <paramref name="normalizedDirection"/> based on <paramref name="relativeTo"/> direction.
 	/// For example, <see cref="Vector3.forward"/> can be equal to <paramref name="relativeTo"/>'s forward </summary>
-	public void SetMovingDirectionRelativeToTransform(Transform relativeTo, Vector3 normalizedWorldDirection)
+	public void SetMovingDirectionRelativeToTransform(Transform relativeTo, Vector3 normalizedDirection)
+		=> SetMovingDirection((relativeTo.rotation * normalizedDirection).normalized);
+
+	public void UpdateRotationByDirection(Vector3 normalizedDirection, Vector3 upwards, MovableRotationAxisType acceptedRotationDirectionAxisType = MovableRotationAxisType.All)
 	{
-		if ((normalizedWorldDirection != Vector3.zero) && !normalizedWorldDirection.IsNormalized())
-			throw new Exception("New direction must be normalized");
+		if ((normalizedDirection == Vector3.zero) && !normalizedDirection.IsNormalized())
+			return;
 
-		var relativeForward = relativeTo.forward;
-		var relativeRight = relativeTo.right;
-		var relativeUp = relativeTo.up;
+		var currentRotation = SelfRigidbody.rotation;
+		var newRotation = Quaternion.LookRotation(normalizedDirection, upwards);
 
-		if (!allowVerticalMovement)
-		{
-			relativeForward.y = 0f;
-			relativeRight.y = 0f;
-			relativeUp.y = 0f;
-		}
+		// Allow only specific axis
+		if (!acceptedRotationDirectionAxisType.HasFlag(MovableRotationAxisType.X))
+			newRotation = Quaternion.FromToRotation(newRotation.GetRightDirection(), currentRotation.GetRightDirection()) * newRotation;
 
-		var resultForward = normalizedWorldDirection.z * relativeForward;
-		var resultRight = normalizedWorldDirection.x * relativeRight;
-		var resultUp = normalizedWorldDirection.y * relativeUp;
+		if (!acceptedRotationDirectionAxisType.HasFlag(MovableRotationAxisType.Y))
+			newRotation = Quaternion.FromToRotation(newRotation.GetUpDirection(), currentRotation.GetUpDirection()) * newRotation;
 
-		NormalizedMovingDirection = (resultForward + resultRight + resultUp).normalized;
+		if (!acceptedRotationDirectionAxisType.HasFlag(MovableRotationAxisType.Z))
+			newRotation = Quaternion.FromToRotation(newRotation.GetForwardDirection(), currentRotation.GetForwardDirection()) * newRotation;
+
+		// Set to new if any change happened
+		SelfRigidbody.rotation = newRotation;
 	}
+
+	/// <summary> Defaults the upwards in <see cref="UpdateRotationByDirection(Vector3, Vector3, MovableRotationAxisType)"/> to Vector3.up </summary>
+	public void UpdateRotationByDirection(Vector3 normalizedDirection, MovableRotationAxisType acceptedRotationDirectionAxisType = MovableRotationAxisType.All)
+		=> UpdateRotationByDirection(normalizedDirection, Vector3.up, acceptedRotationDirectionAxisType);
+
+	public void UpdateRotationByCurrentDirection(Vector3 upwards, MovableRotationAxisType acceptedRotationDirectionAxisType = MovableRotationAxisType.All)
+		=> UpdateRotationByDirection(_normalizedMovingDirection, upwards, acceptedRotationDirectionAxisType);
+
+	/// <inheritdoc cref="UpdateRotationByDirection(Vector3, MovableRotationAxisType)"/>
+	public void UpdateRotationByCurrentDirection(MovableRotationAxisType acceptedRotationDirectionAxisType = MovableRotationAxisType.All)
+		=> UpdateRotationByCurrentDirection(Vector3.up, acceptedRotationDirectionAxisType);
 }
 
 

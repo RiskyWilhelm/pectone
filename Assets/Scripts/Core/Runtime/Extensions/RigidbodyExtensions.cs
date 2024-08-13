@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static partial class RigidbodyExtensions
+public static class RigidbodyExtensions
 {
 	/// <summary> Checks if rigidbody <b>exactly</b> moving </summary>
 	public static bool IsMoving(this Rigidbody rigidbody)

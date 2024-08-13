@@ -1,7 +1,7 @@
 using System;
+using Unity.Cinemachine;
 using UnityEngine;
 
-// TODO: Do gliding when wing snap is in certain angle
 public sealed partial class Player : StateMachineDrivenPlayerBase
 {
 	[Serializable]
@@ -52,7 +52,7 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 
 		// Update
-		/// <summary> Adds force to down vector of rigidbody based on new wing span value </summary>
+		/// <summary> Adds force from down to the rigidbody based on how big is new wing span value change compared to last </summary>
 		public void SetWingSpan01WithRelativeForce(Rigidbody controlRigidbody, float newWingSpan01, float upForce, ForceMode forceMode = ForceMode.Force)
 		{
 			var wingSpanChange01 = (newWingSpan01 - LastSpan01);
@@ -92,6 +92,12 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	[Tooltip("Manipulates the movementDirection based on this direction. For example, Vector3.forward can be equal to this forward")]
 	private Transform relativeMovementTransform;
 
+	[SerializeField]
+	private float equalizeUpRotationWithSurfacePower = 45f;
+
+	[SerializeField]
+	private float equalizeUpRotationWithUnGroundedCameraPower = 45f;
+
 
 	#endregion
 
@@ -105,16 +111,28 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	private Wing leftWing;
 
 	[SerializeField]
-	private float wingGlidingForce;
+	private float wingGlideForce;
 
 	[SerializeField]
-	private float wingFlappingForce;
+	private float wingFlapForce;
 
 	[SerializeField]
-	private float wingClosingSpeed;
+	private float wingClosePower;
 
 	[SerializeField]
 	private CustomizableJoystick wingControllerJoystick;
+
+
+	#endregion
+
+	[Header("Player Other")]
+	#region Player Other
+
+	[SerializeField]
+	private CinemachineCamera unGroundedCamera;
+
+	[SerializeField]
+	private CinemachineCamera groundedCamera;
 
 
 	#endregion
@@ -129,87 +147,120 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 
 	// Update
-	protected override void Update()
+	protected override void DoGrounded()
 	{
-		if (!wingControllerJoystick.IsGettingInteracted)
-			CloseWingsBySpeed();
-
-		base.Update();
+		var movementRigidbody = movementController.SelfRigidbody;
+		movementRigidbody.rotation = EqualizeUpRotationWithDirection(movementRigidbody.rotation, CurrentIsGroundedHit.normal, equalizeUpRotationWithSurfacePower * Time.deltaTime);
 	}
 
-	protected override void FixedUpdate()
+	protected override void DoUnGrounded()
+	{
+		var movementRigidbody = movementController.SelfRigidbody;
+		movementRigidbody.rotation = EqualizeUpRotationWithDirection(movementRigidbody.rotation, relativeMovementTransform.up, equalizeUpRotationWithUnGroundedCameraPower * Time.deltaTime);
+	}
+
+	protected override void DoUnGroundedFixed()
 	{
 		if (wingControllerJoystick.IsGettingInteracted)
-			OnWingControllerJoystickInteractedFixed();
-
-		base.FixedUpdate();
+			FlapWingsToNewWingSpan(wingControllerJoystick.Input.y);
+		else
+			CloseWings(wingClosePower * Time.deltaTime);
 	}
 
-	public void OnMovementJoystickInputChanged(Vector2 input)
-    {
-		var normalizedInput = input.normalized;
-
-		movementController.SetMovingDirectionRelativeToTransform(relativeMovementTransform, normalizedInput);
-		UpdateRotationBasedOnInput(normalizedInput);
-	}
-
-	public void OnWingControllerJoystickInteractedFixed()
+	protected override void DoGroundedFixed()
 	{
-		var input = wingControllerJoystick.Input;
-		if ((input == wingControllerJoystick.LastInput) && !IsGrounded())
-		{
-			var glidingPowerFromWingSpan = Mathf.Clamp01(1f - Math.Abs(input.y));
-
-			SelfRigidbody.AddRelativeForce(Vector3.up * (glidingPowerFromWingSpan * wingGlidingForce), ForceMode.Acceleration);
-			rightWing.Span01 = input.y;
-			leftWing.Span01 = input.y;
-			return;
-		}
-
-		var isInputMovedDownwards = (input.y < rightWing.Span01) || (input.y < rightWing.Span01);
-		if (isInputMovedDownwards)
-		{
-			rightWing.SetWingSpan01WithRelativeForce(SelfRigidbody, input.y, wingFlappingForce, ForceMode.Acceleration);
-			leftWing.SetWingSpan01WithRelativeForce(SelfRigidbody, input.y, wingFlappingForce, ForceMode.Acceleration);
-			return;
-		}
-
-		rightWing.Span01 = input.y;
-		leftWing.Span01 = input.y;
+		if (wingControllerJoystick.IsGettingInteracted)
+			FlapWingsToNewWingSpan(wingControllerJoystick.Input.y);
+		else
+			CloseWings(wingClosePower * Time.deltaTime);
 	}
 
-	public void CloseWings()
+	public void DoWingGlidingAtWingSpan(float newWingSpan01)
 	{
-		rightWing.Span01 = -1f;
-		leftWing.Span01 = -1f;
-	}
-
-	public void CloseWingsBySpeed()
-	{
-		var newWingSpan01 = Mathf.MoveTowards(rightWing.Span01, -1f, wingClosingSpeed * Time.deltaTime);
+		var movementRigidbody = movementController.SelfRigidbody;
+		var glidingPowerFromWingSpan = Mathf.Clamp01(1f - Math.Abs(newWingSpan01));
+		movementRigidbody.AddRelativeForce(Vector3.up * (glidingPowerFromWingSpan * wingGlideForce), ForceMode.Acceleration);
 
 		rightWing.Span01 = newWingSpan01;
 		leftWing.Span01 = newWingSpan01;
 	}
 
-	// TODO: This code repetities at Movable.cs
-	private void UpdateRotationBasedOnInput(Vector2 normalizedInput)
+	public void FlapWingsToNewWingSpan(float newWingSpan01)
 	{
-		// Also prevents the zero
-		if (!normalizedInput.IsNormalized())
-			return;
+		var movementRigidbody = movementController.SelfRigidbody;
+		var isNewEqualsWithCurrent = Mathf.Approximately(newWingSpan01, leftWing.Span01) || Mathf.Approximately(newWingSpan01, rightWing.Span01);
+		var isWantsToGlide = !IsGrounded && isNewEqualsWithCurrent;
+		var isFlappedToDownward = (newWingSpan01 < leftWing.Span01) || (newWingSpan01 < rightWing.Span01);
 
-		var relativeForward = relativeMovementTransform.forward;
-		var relativeRight = relativeMovementTransform.right;
+		if (isWantsToGlide)
+			DoWingGlidingAtWingSpan(newWingSpan01);
+        else if (isFlappedToDownward)
+		{
+			rightWing.SetWingSpan01WithRelativeForce(movementRigidbody, newWingSpan01, wingFlapForce, ForceMode.Acceleration);
+			leftWing.SetWingSpan01WithRelativeForce(movementRigidbody, newWingSpan01, wingFlapForce, ForceMode.Acceleration);
+		}
+		else
+		{
+			rightWing.Span01 = newWingSpan01;
+			leftWing.Span01 = newWingSpan01;
+		}
+	}
 
-		relativeForward.y = 0f;
-		relativeRight.y = 0f;
+	public void CloseWings(float speedDelta = 1f)
+	{
+		var newWingSpan01 = Mathf.MoveTowards(rightWing.Span01, -1f, speedDelta);
 
-		var resultRight = normalizedInput.x * relativeRight;
-		var resultForward = normalizedInput.y * relativeForward;
+		rightWing.Span01 = newWingSpan01;
+		leftWing.Span01 = newWingSpan01;
+	}
 
-		var normalizedResult = (resultForward + resultRight).normalized;
-		SelfRigidbody.rotation = Quaternion.LookRotation(normalizedResult);
+	private Quaternion EqualizeUpRotationWithDirection(Quaternion a, Vector3 normalizedDirection, float powerDelta = 360f)
+	{
+		var newForward = Vector3.ProjectOnPlane(a.GetForwardDirection(), normalizedDirection).normalized;
+		var finalRotation = Quaternion.LookRotation(newForward, normalizedDirection);
+		return Quaternion.RotateTowards(a, finalRotation, powerDelta);
+	}
+
+	protected override void OnGrounded()
+	{
+		groundedCamera.Priority = 1;
+		unGroundedCamera.Priority = 0;
+		relativeMovementTransform = groundedCamera.transform;
+	}
+
+	protected override void OnUnGrounded()
+	{
+		groundedCamera.Priority = 0;
+		unGroundedCamera.Priority = 1;
+		relativeMovementTransform = unGroundedCamera.transform;
+	}
+
+	public void OnMovementJoystickInputChanged(Vector2 input)
+    {
+		var normalizedInput = input.normalized;
+		var inputForward = new Vector3(normalizedInput.x, 0f, normalizedInput.y);
+
+		if (IsGrounded && (normalizedInput != Vector2.zero))
+		{
+			var movementRigidbody = movementController.SelfRigidbody;
+
+			// Align the forward vector with relative transform
+			var relativeAlignedInputBasedForward = (relativeMovementTransform.rotation * inputForward);
+			var relativeAlignedRotation = Quaternion.LookRotation(relativeAlignedInputBasedForward);
+
+			// Equalize up rotation to surface by power
+			var surfaceAlignedRotation = EqualizeUpRotationWithDirection(relativeAlignedRotation, CurrentIsGroundedHit.normal);
+			var surfaceAlignedForward = surfaceAlignedRotation.GetForwardDirection().normalized;
+			var finalRotation = Quaternion.Slerp(surfaceAlignedRotation, relativeAlignedRotation, equalizeUpRotationWithSurfacePower * Time.deltaTime);
+
+			movementController.SetMovingDirection(surfaceAlignedForward);
+			movementController.UpdateRotationByDirection(finalRotation.GetForwardDirection(), movementRigidbody.rotation.GetUpDirection(), (MovableRotationAxisType.X | MovableRotationAxisType.Z));
+		}
+		else
+		{
+			movementController.SetMovingDirectionRelativeToTransform(relativeMovementTransform, inputForward);
+			movementController.UpdateRotationByCurrentDirection(relativeMovementTransform.up, (MovableRotationAxisType.X | MovableRotationAxisType.Z));
+		}
 	}
 }
 

@@ -30,9 +30,10 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 
 
 	// Update
-	protected virtual void Update()
+	protected override void Update()
 	{
 		DoState();
+		base.Update();
 	}
 
 	protected virtual void FixedUpdate()
@@ -45,12 +46,12 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 		DoStateLate();
 	}
 
-	public void BlockState()
+	public void SwitchToBlockState()
 	{
 		State = PlayerStateType.Blocked;
 	}
 
-	public void UnblockState()
+	public void SwitchToUnblockState()
 	{
 		if (State is PlayerStateType.Blocked)
 			State = PlayerStateType.Idle;
@@ -98,7 +99,20 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 			DoBlocked();
 			break;
 		}
+
+		if (IsGrounded)
+			DoGrounded();
+		else
+			DoUnGrounded();
 	}
+
+	/// <summary> It is not a 'state' but gets called if player grounded </summary>
+	protected virtual void DoGrounded()
+	{ }
+
+	/// <summary> It is not a 'state' but gets called if player not grounded </summary>
+	protected virtual void DoUnGrounded()
+	{ }
 
 	protected virtual void DoIdle()
 	{ }
@@ -172,7 +186,20 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 			DoBlockedFixed();
 			break;
 		}
+
+		if (IsGrounded)
+			DoGroundedFixed();
+		else
+			DoUnGroundedFixed();
 	}
+
+	/// <inheritdoc cref="DoGrounded"/>
+	protected virtual void DoGroundedFixed()
+	{ }
+
+	/// <inheritdoc cref="DoUnGrounded"/>
+	protected virtual void DoUnGroundedFixed()
+	{ }
 
 	protected virtual void DoIdleFixed()
 	{ }
@@ -246,7 +273,19 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 			DoBlockedLate();
 			break;
 		}
+		if (IsGrounded)
+			DoGroundedLate();
+		else
+			DoUnGroundedLate();
 	}
+
+	/// <inheritdoc cref="DoGrounded"/>
+	protected virtual void DoGroundedLate()
+	{ }
+
+	/// <inheritdoc cref="DoUnGrounded"/>
+	protected virtual void DoUnGroundedLate()
+	{ }
 
 	protected virtual void DoIdleLate()
 	{ }

@@ -2,8 +2,9 @@
     "name": "Pectone.Player.Runtime",
     "rootNamespace": "",
     "references": [
+        "GUID:4e0d6067b78657c49ad30ac6dad47c75",
         "GUID:75469ad4d38634e559750d17036d5f7c",
-        "GUID:4e0d6067b78657c49ad30ac6dad47c75"
+        "GUID:4307f53044263cf4b835bd812fc161a4"
     ],
     "includePlatforms": [
         "Android",

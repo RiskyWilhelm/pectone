@@ -39,7 +39,9 @@ public sealed partial class ExternalVector2InputAxisController : InputAxisContro
 		set
 		{
 			_temporaryValue = value;
-			UpdateControllers();
+
+			if (isActiveAndEnabled)
+				UpdateControllers();
 		}
 	}
 

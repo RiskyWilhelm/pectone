@@ -93,7 +93,7 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	private Transform relativeMovementTransform;
 
 	[SerializeField]
-	private float equalizeUpRotationWithSurfacePower = 45f;
+	private float equalizeUpRotationWithSurfacePower = 100f;
 
 	[SerializeField]
 	private float equalizeUpRotationWithUnGroundedCameraPower = 45f;
@@ -150,13 +150,13 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 	protected override void DoGrounded()
 	{
 		var movementRigidbody = movementController.SelfRigidbody;
-		movementRigidbody.rotation = EqualizeUpRotationWithDirection(movementRigidbody.rotation, CurrentIsGroundedHit.normal, equalizeUpRotationWithSurfacePower * Time.deltaTime);
+		movementRigidbody.rotation = movementRigidbody.rotation.EqualizeUpRotationWithDirection(CurrentIsGroundedHit.normal, powerDelta: equalizeUpRotationWithSurfacePower * Time.deltaTime);
 	}
 
 	protected override void DoUnGrounded()
 	{
 		var movementRigidbody = movementController.SelfRigidbody;
-		movementRigidbody.rotation = EqualizeUpRotationWithDirection(movementRigidbody.rotation, relativeMovementTransform.up, equalizeUpRotationWithUnGroundedCameraPower * Time.deltaTime);
+		movementRigidbody.rotation = movementRigidbody.rotation.EqualizeUpRotationWithDirection(relativeMovementTransform.up, powerDelta: equalizeUpRotationWithUnGroundedCameraPower * Time.deltaTime);
 	}
 
 	protected override void DoUnGroundedFixed()
@@ -214,12 +214,6 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 		leftWing.Span01 = newWingSpan01;
 	}
 
-	private Quaternion EqualizeUpRotationWithDirection(Quaternion a, Vector3 normalizedDirection, float powerDelta = 360f)
-	{
-		var newForward = Vector3.ProjectOnPlane(a.GetForwardDirection(), normalizedDirection).normalized;
-		var finalRotation = Quaternion.LookRotation(newForward, normalizedDirection);
-		return Quaternion.RotateTowards(a, finalRotation, powerDelta);
-	}
 
 	protected override void OnGrounded()
 	{
@@ -248,13 +242,12 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 			var relativeAlignedInputBasedForward = (relativeMovementTransform.rotation * inputForward);
 			var relativeAlignedRotation = Quaternion.LookRotation(relativeAlignedInputBasedForward);
 
-			// Equalize up rotation to surface by power
-			var surfaceAlignedRotation = EqualizeUpRotationWithDirection(relativeAlignedRotation, CurrentIsGroundedHit.normal);
+			// Equalize up rotation to surface
+			var surfaceAlignedRotation = relativeAlignedRotation.EqualizeUpRotationWithDirection(CurrentIsGroundedHit.normal);
 			var surfaceAlignedForward = surfaceAlignedRotation.GetForwardDirection().normalized;
-			var finalRotation = Quaternion.Slerp(surfaceAlignedRotation, relativeAlignedRotation, equalizeUpRotationWithSurfacePower * Time.deltaTime);
 
 			movementController.SetMovingDirection(surfaceAlignedForward);
-			movementController.UpdateRotationByDirection(finalRotation.GetForwardDirection(), movementRigidbody.rotation.GetUpDirection(), (MovableRotationAxisType.X | MovableRotationAxisType.Z));
+			movementController.UpdateRotationByCurrentDirection(movementRigidbody.rotation.GetUpDirection(), (MovableRotationAxisType.X | MovableRotationAxisType.Z));
 		}
 		else
 		{

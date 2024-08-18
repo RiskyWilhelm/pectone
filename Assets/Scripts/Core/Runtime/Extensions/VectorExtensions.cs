@@ -272,7 +272,7 @@ public static class VectorExtensions
 		return (b - a).normalized;
 	}
 
-	/// <returns> Non-normalized rotated original vector </returns>
+	/// <returns> Non-normalized world direction vector </returns>
 	public static Vector2 GetDirectionWithMagnitudeTo(this Vector2 a, Vector2 b)
 	{
 		return (b - a);

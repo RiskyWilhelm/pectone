@@ -64,12 +64,13 @@ public abstract partial class PlayerBase : MonoBehaviour
 	public bool IsGroundedAtVector(Vector3 worldPosition, out RaycastHit hit, int layerMask = Layers.Mask.Ground)
 	{
 		// BoxCast wont give good results when it's Y size is defined.You can debug that in Analysis>Physics
+		var castExtent = (size * 0.25f);
 		var sizeExtent = (size * 0.5f);
 		var currentRotation = SelfRigidbody.rotation;
 
 		// Check the 6 main direction because the player may be floating in the air
 		(Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float maxDistance, int layerMask) castSettings =
-			(worldPosition, new Vector3(sizeExtent.x, 0.01f, sizeExtent.z), currentRotation.GetDownDirection(), currentRotation, sizeExtent.y + acceptedDistanceForIsGroundedCheck, layerMask);
+			(worldPosition, new Vector3(castExtent.x - 0.05f, castExtent.y - 0.05f, castExtent.z - 0.05f), currentRotation.GetDownDirection(), currentRotation, sizeExtent.y + acceptedDistanceForIsGroundedCheck, layerMask);
 
 		if (DoCast(castSettings, out hit))
 			return true;
@@ -79,7 +80,6 @@ public abstract partial class PlayerBase : MonoBehaviour
 			return true;
 
 		castSettings.direction = currentRotation.GetRightDirection();
-		castSettings.halfExtents = new Vector3(0.01f, sizeExtent.y, sizeExtent.z);
 		castSettings.maxDistance = sizeExtent.x + acceptedDistanceForIsGroundedCheck;
 		if (DoCast(castSettings, out hit))
 			return true;
@@ -89,7 +89,6 @@ public abstract partial class PlayerBase : MonoBehaviour
 			return true;
 
 		castSettings.direction = currentRotation.GetBackDirection();
-		castSettings.halfExtents = new Vector3(sizeExtent.x, sizeExtent.y, 0.01f);
 		castSettings.maxDistance = sizeExtent.z + acceptedDistanceForIsGroundedCheck;
 		if (DoCast(castSettings, out hit))
 			return true;

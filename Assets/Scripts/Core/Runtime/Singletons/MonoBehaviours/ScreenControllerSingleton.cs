@@ -8,7 +8,6 @@ public sealed partial class ScreenControllerSingleton : MonoBehaviourSingletonBa
 {
 	#region ScreenControllerSingleton Volume
 
-	[NonSerialized]
 	private readonly Dictionary<Volume, Coroutine> activeControlledVolumeWeightDict = new();
 
 
@@ -50,8 +49,8 @@ public sealed partial class ScreenControllerSingleton : MonoBehaviourSingletonBa
 			yield return null;
 		}
 
-		onEnded?.Invoke();
 		activeControlledVolumeWeightDict.Remove(volume);
+		onEnded?.Invoke();
 	}
 }
 

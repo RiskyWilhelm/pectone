@@ -14,12 +14,20 @@ public sealed class NewtonsoftAssetReferenceConverter : JsonConverter<AssetRefer
 		(
 			new JProperty(nameof(AssetReference.AssetGUID), value.AssetGUID)
 		);
-
+			
 		obj.WriteTo(writer);
 	}
 
 	public override AssetReference ReadJson(JsonReader reader, Type objectType, AssetReference existingValue, bool hasExistingValue, JsonSerializer serializer)
 	{
-		return JObject.Load(reader).Value<AssetReference>();
+		// Null value
+		if (reader.TokenType != JsonToken.StartObject)
+			return default;
+
+		JObject obj = JObject.Load(reader);
+		return new AssetReference
+		(
+			obj.Value<string>(nameof(AssetReference.AssetGUID))
+		);
 	}
 }

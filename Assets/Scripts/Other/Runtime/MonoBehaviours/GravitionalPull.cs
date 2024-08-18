@@ -3,26 +3,20 @@ using UnityEngine;
 
 public sealed partial class GravitionalPull : MonoBehaviour
 {
-	[Header("GravitionalCollider Gravity")]
-	#region GravitionalCollider Gravity
+	[Header("GravitionalPull Gravity")]
+	#region GravitionalPull Gravity
 
-	[SerializeField]
-	private Collider selfCollider;
+	[Tooltip("Optional. If zero, a direction of registered rigibody to transform position (origin) is used")]
+	public Vector3 pullDirectionWorldEuler;
+
+	public bool isPullDirectionWorldAxis;
 
 	public float pullGravity = 9.81f;
 
 
 	#endregion
 
-	[Header("GravitionalCollider Rotation")]
-	#region GravitionalCollider Rotation
-
-	public float equalizeRigidbodyRotationPower = 90f;
-
-
-	#endregion
-
-	#region GravitionalCollider Other
+	#region GravitionalPull Other
 
 	private readonly HashSet<Rigidbody> registeredRigibodiesSet = new();
 
@@ -43,27 +37,28 @@ public sealed partial class GravitionalPull : MonoBehaviour
 
 	private void PullControlledRigidbodiesFixed()
 	{
-        foreach (var iteratedRigidbody in registeredRigibodiesSet)
+		var isUsingOriginForPull = (pullDirectionWorldEuler == Vector3.zero);
+		var pullDirection = default(Vector3);
+
+		if (!isUsingOriginForPull)
+		{
+			if (isPullDirectionWorldAxis)
+				pullDirection = Quaternion.Euler(pullDirectionWorldEuler).GetForwardDirection();
+			else
+				pullDirection = this.transform.rotation * Quaternion.Euler(pullDirectionWorldEuler).GetForwardDirection();
+		}
+
+		foreach (var iteratedRigidbody in registeredRigibodiesSet)
         {
 			if (iteratedRigidbody.isKinematic || iteratedRigidbody.IsSleeping())
 				return;
 
-			var normalizedDirTargetToSelf = iteratedRigidbody.transform.position.GetWorldDirectionTo(this.transform.position);
-			iteratedRigidbody.AddForce(normalizedDirTargetToSelf * (pullGravity * iteratedRigidbody.mass));
-			EqualizeRigidbodyUpRotation(iteratedRigidbody, equalizeRigidbodyRotationPower * Time.deltaTime);
+			if (isUsingOriginForPull)
+				pullDirection = iteratedRigidbody.transform.position.GetWorldDirectionTo(this.transform.position);
+
+			iteratedRigidbody.AddForce(pullDirection * (pullGravity * iteratedRigidbody.mass));
         }
     }
-
-	public void EqualizeRigidbodyUpRotation(Rigidbody targetRigidbody, float powerDelta = 360f)
-	{
-		if (powerDelta == 0f)
-			return;
-
-		var targetRigidbodyTransform = targetRigidbody.transform;
-		var normalizedDirTargetToSelf = targetRigidbodyTransform.position.GetWorldDirectionTo(this.transform.position);
-		var newRotationDir = Quaternion.FromToRotation(-targetRigidbodyTransform.up, normalizedDirTargetToSelf) * targetRigidbodyTransform.rotation;
-		targetRigidbody.rotation = Quaternion.RotateTowards(targetRigidbody.rotation, newRotationDir, powerDelta);
-	}
 
 	public void OnRigidbodyTriggerEnter(OnTriggerEnterEvent.Args args)
 	{
@@ -89,7 +84,11 @@ public sealed partial class GravitionalPull : MonoBehaviour
 #if UNITY_EDITOR
 
 public sealed partial class GravitionalPull
-{ }
+{
+	[Header("GravitionalPull Edit")]
+	[RenameLabelTo("Is Activated Interactive Editing")]
+	public bool e_IsActivatedInteractiveEditing;
+}
 
 
 #endif

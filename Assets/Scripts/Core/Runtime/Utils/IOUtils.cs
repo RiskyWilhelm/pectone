@@ -1,13 +1,13 @@
 using System;
 using System.IO;
-using Cysharp.Text;
+using System.Text;
 using Newtonsoft.Json;
 using UnityEngine;
 
 // Save&Load Copyright belongs to: https://github.com/shapedbyrainstudios/save-load-system - I upgraded the code
 public static class IOUtils
 {
-	public const string encryptionWord = "Lightout";
+	public const string encryptionWord = "Encrypted";
 	public const string backupExtension = ".backup";
 
 
@@ -22,17 +22,11 @@ public static class IOUtils
 		=> path = FixPathByCorrectDirectorySeperator(path);
 
 	/// <summary> Uses Newtonsoft JSON to deserialize </summary>
-	public static bool Load<LoadObjectType>(string fullPathWithExtension, out LoadObjectType loadedData, bool useDecryption = false, bool allowRestoreFromBackup = true)
+	/// <remarks> Use '/' in <paramref name="fullPathWithExtension"/> for platform relative dir seperator </remarks>
+	public static void Load<LoadObjectType>(string fullPathWithExtension, out LoadObjectType loadedData, bool useDecryption = false, bool allowRestoreFromBackup = true)
 	{
 		loadedData = default;
 		FixPathByCorrectDirectorySeperator(ref fullPathWithExtension);
-
-		// Try to load backup if file does not exists
-		if (!File.Exists(fullPathWithExtension))
-		{
-			Debug.LogError($"Failed to load file at path: {fullPathWithExtension} File does not exists");
-			return allowRestoreFromBackup && TrySaveRollbackAsMainFile(fullPathWithExtension) && Load<LoadObjectType>(fullPathWithExtension, out loadedData, useDecryption, false);
-		}
 
 		// load the serialized data from the file
 		try
@@ -48,78 +42,66 @@ public static class IOUtils
 				dataToLoad = EncryptDecrypt(dataToLoad);
 
 			loadedData = JsonConvert.DeserializeObject<LoadObjectType>(dataToLoad);
-			return true;
 		}
 		// Try to load backup if any exists
 		catch (Exception e)
 		{
 			if (allowRestoreFromBackup)
 			{
-				Debug.LogWarning($"Failed to load file at path: {fullPathWithExtension} Attempting to rollback. Error occured: {e}");
+				Debug.LogWarning($"Error occured, attempting to Rollback: {e}");
 
-				if (TrySaveRollbackAsMainFile(fullPathWithExtension) && Load<LoadObjectType>(fullPathWithExtension, out loadedData, useDecryption, false))
-					return true;
+				SaveBackupAsMainFile(fullPathWithExtension);
+				Load<LoadObjectType>(fullPathWithExtension, out loadedData, useDecryption, false);
 			}
-				
-			// if we hit here, one possibility is that the backup file is also corrupt
-			Debug.LogError($"Failed to load file at path: {fullPathWithExtension} and backup did not work. Maybe the file is corrupted. Error occured: {e}");
-		}
 
-		return false;
+			// if we hit here, one possibility is that the backup file is also corrupt
+			throw;
+		}
 	}
 
-	/// <summary> Uses Newtonsoft JSON to serialize </summary>
+	/// <summary> Uses Newtonsoft JSON to deserialize </summary>
+	/// <remarks> Use '/' in <paramref name="fullPathWithExtension"/> for platform relative dir seperator </remarks>
 	public static void Save<SaveObjectType>(SaveObjectType data, string fullPathWithExtension, bool useEncryption = false, bool createBackup = true)
 	{
+		string dataToStore = JsonConvert.SerializeObject(data);
 		FixPathByCorrectDirectorySeperator(ref fullPathWithExtension);
+		Directory.CreateDirectory(Path.GetDirectoryName(fullPathWithExtension));
 
-		try
+		if (useEncryption)
+			dataToStore = EncryptDecrypt(dataToStore);
+
+		// write the serialized data to the file
+		using (var stream = new FileStream(fullPathWithExtension, FileMode.Create))
 		{
-			Directory.CreateDirectory(Path.GetDirectoryName(fullPathWithExtension));
-			string dataToStore = JsonConvert.SerializeObject(data);
-
-			if (useEncryption)
-				dataToStore = EncryptDecrypt(dataToStore);
-
-			// write the serialized data to the file
-			using (var stream = new FileStream(fullPathWithExtension, FileMode.Create))
-			{
-				using var writer = new StreamWriter(stream);
-				writer.Write(dataToStore);
-			}
-
-			// verify the newly saved file can be loaded successfully
-			// if the data can be verified, back it up
-			if (Load<SaveObjectType>(fullPathWithExtension, out _, useEncryption, false) && createBackup)
-				File.Copy(fullPathWithExtension, ZString.Concat(fullPathWithExtension, backupExtension), true);
-			else
-				throw new Exception($"Save file could not be verified and backup could not be created at path: {fullPathWithExtension}");
+			using var writer = new StreamWriter(stream);
+			writer.Write(dataToStore);
 		}
-		catch (Exception e)
-		{
-			Debug.LogError($"Error occured when trying to save data to file at path: {fullPathWithExtension} Error occured: {e}");
-		}
+
+		// verify the newly saved file can be loaded successfully
+		Load<SaveObjectType>(fullPathWithExtension, out _, useEncryption, false);
+			
+		if (createBackup)
+			File.Copy(fullPathWithExtension, (fullPathWithExtension + backupExtension), true);
 	}
 
-	public static void Delete(string fullPathWithExtension, bool deleteBackup = true)
+	public static void Delete(string fullPathWithExtension, bool deleteBackupIfExists = true)
 	{
-		if (!File.Exists(fullPathWithExtension))
-		{
-			Debug.LogError($"Failed to delete file at path: {fullPathWithExtension} File does not exists");
-			return;
-		}
-
-		if (deleteBackup)
-			File.Delete(ZString.Concat(fullPathWithExtension, backupExtension));
-
 		File.Delete(fullPathWithExtension);
+
+		if (deleteBackupIfExists)
+		{
+			try
+			{
+				File.Delete(fullPathWithExtension + backupExtension);
+			}
+			catch { }
+		}
 	}
 
 	/// <summary> Simple implementation of XOR encryption </summary>
-	private static string EncryptDecrypt(string data)
+	public static string EncryptDecrypt(string data)
 	{
-		using var stringBuilder = ZString.CreateStringBuilder();
-		stringBuilder.TryGrow(data.Length);
+		var stringBuilder = new StringBuilder(data.Length);
 
 		for (int i = 0; i < data.Length; i++)
 			stringBuilder.Append((char)(data[i] ^ encryptionWord[i % encryptionWord.Length]));
@@ -127,27 +109,11 @@ public static class IOUtils
 		return stringBuilder.ToString();
 	}
 
-	private static bool TrySaveRollbackAsMainFile(string fullPathWithExtension)
+	public static void SaveBackupAsMainFile(string fullPathWithExtension)
 	{
-		string backupFilePath = ZString.Concat(fullPathWithExtension, backupExtension);
+		string backupFilePath = (fullPathWithExtension + backupExtension);
 		FixPathByCorrectDirectorySeperator(ref backupFilePath);
 
-		try
-		{
-			if (!File.Exists(backupFilePath))
-			{
-				Debug.LogError("Tried to Rollback but no backup file exists to roll back to.");
-				return false;
-			}
-			
-			File.Copy(backupFilePath, fullPathWithExtension, true);
-			Debug.Log($"Saved backup as main file to: {fullPathWithExtension}");
-			return true;
-		}
-		catch (Exception e)
-		{
-			Debug.LogError($"Failed to Rollback when trying to roll back to backup file at: {backupFilePath} Error Occured: {e}");
-			return false;
-		}
+		File.Copy(backupFilePath, fullPathWithExtension, true);
 	}
 }

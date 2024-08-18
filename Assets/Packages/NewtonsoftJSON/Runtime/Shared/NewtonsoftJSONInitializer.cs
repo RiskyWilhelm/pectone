@@ -25,7 +25,7 @@ public static partial class NewtonsoftJSONInitializer
 				new NewtonsoftVector3IntConverter(),
 				new NewtonsoftVector4Converter(),
 				new NewtonsoftQuaternionConverter(),
-				new NewtonsoftAssetReferenceConverter(),
+				new NewtonsoftAssetReferenceConverter()
 			}
 		};
 	}

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class QuaternionExtensions
 {
-	/// <returns> Non-normalized vector </returns>
+	/// <returns> Non-normalized direction vector in world up </returns>
 	public static Vector3 GetForwardDirection(this Quaternion a)
 	{
 		return a * Vector3.forward;
@@ -39,8 +39,24 @@ public static class QuaternionExtensions
 		return a * Vector3.left;
 	}
 
+	/// <summary> Subtracts B using A’s local coords </summary>
 	public static Quaternion SubtractFrom(this Quaternion a, Quaternion b)
 	{
 		return b * Quaternion.Inverse(a);
+	}
+
+	/// <param name="preventForwardInvert"> Sometimes the forward is inverted due to quaternions slerping to nearest behaviour. Prevents that and keeps the forward exactly as before </param>
+	public static Quaternion EqualizeUpRotationWithDirection(this Quaternion a, Vector3 direction, bool preventForwardInvert = true, float powerDelta = 360f)
+	{
+		if (powerDelta == 0f)
+			return a;
+
+		var newForward = a.GetForwardDirection();
+
+		if (preventForwardInvert)
+			newForward = Vector3.ProjectOnPlane(newForward, direction).normalized;
+
+		var finalRotation = Quaternion.LookRotation(newForward, direction);
+		return Quaternion.RotateTowards(a, finalRotation, powerDelta);
 	}
 }

@@ -305,6 +305,11 @@ public static class VectorExtensions
 		return Mathf.Approximately(a.sqrMagnitude, 1.0f);
 	}
 
+	public static bool IsNormalized(this Vector4 a)
+	{
+		return Mathf.Approximately(a.sqrMagnitude, 1.0f);
+	}
+
 	public static bool IsNormalizedOrZero(this Vector2 a)
 	{
 		return (a == Vector2.zero) || IsNormalized(a);
@@ -315,8 +320,8 @@ public static class VectorExtensions
 		return (a == Vector3.zero) || IsNormalized(a);
 	}
 
-	public static bool IsNormalized(this Vector4 a)
+	public static bool IsNormalizedOrZero(this Vector4 a)
 	{
-		return Mathf.Approximately(a.sqrMagnitude, 1.0f);
+		return (a == Vector4.zero) || IsNormalized(a);
 	}
 }

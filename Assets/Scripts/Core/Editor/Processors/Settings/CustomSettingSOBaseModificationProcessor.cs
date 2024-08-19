@@ -39,7 +39,7 @@ public sealed partial class CustomSettingSOBaseModificationProcessor : AssetModi
 	private static AssetMoveResult OnWillMoveAsset(string sourcePath, string destinationPath)
 	{
 		if (TryGetSettingAssetFromPath(sourcePath, out CustomSettingSOBase setting))
-			setting.OnMovedAsset();
+			setting.OnWillMoveAsset();
 
 		return AssetMoveResult.DidNotMove;
 	}
@@ -47,7 +47,7 @@ public sealed partial class CustomSettingSOBaseModificationProcessor : AssetModi
 	private static AssetDeleteResult OnWillDeleteAsset(string path, RemoveAssetOptions opt)
 	{
 		if (TryGetSettingAssetFromPath(path, out CustomSettingSOBase setting))
-			setting.OnDeletedAsset();
+			setting.OnWillDeletedAsset();
 		
 		return AssetDeleteResult.DidNotDelete;
 	}

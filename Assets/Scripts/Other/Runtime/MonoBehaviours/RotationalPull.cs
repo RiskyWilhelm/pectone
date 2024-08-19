@@ -60,16 +60,16 @@ public sealed partial class RotationalPull : MonoBehaviour
         }
     }
 
-	public void OnRigidbodyTriggerEnter(OnTriggerEnterEvent.Args args)
+	public void OnRigidbodyTriggerEnter(Collider other)
 	{
-		if (EventReflectorUtils.TryGetComponentByEventReflector<Rigidbody>(args.OtherCollider.gameObject, out Rigidbody found))
-			registeredRigibodiesSet.Add(found);
+		if (other.attachedRigidbody)
+			registeredRigibodiesSet.Add(other.attachedRigidbody);
 	}
 
-	public void OnRigidbodyTriggerExit(OnTriggerExitEvent.Args args)
+	public void OnRigidbodyTriggerExit(Collider other)
 	{
-		if (EventReflectorUtils.TryGetComponentByEventReflector<Rigidbody>(args.OtherCollider.gameObject, out Rigidbody found))
-			registeredRigibodiesSet.Remove(found);
+		if (other.attachedRigidbody)
+			registeredRigibodiesSet.Remove(other.attachedRigidbody);
 	}
 
 

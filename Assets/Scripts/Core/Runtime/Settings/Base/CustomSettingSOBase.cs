@@ -51,8 +51,6 @@ public abstract partial class CustomSettingSOBase : ScriptableObject
 
 	private void DeleteAssetOrDestroy()
 	{
-		UnRegisterSetting();
-
 #if UNITY_EDITOR
 		if (!Application.isPlaying)
 		{
@@ -61,6 +59,7 @@ public abstract partial class CustomSettingSOBase : ScriptableObject
 		}
 #endif
 
+		UnRegisterSetting();
 		Destroy(this);
 	}
 
@@ -82,12 +81,12 @@ public abstract partial class CustomSettingSOBase
 		RegisterOrDestroySetting();
 	}
 
-	public void OnDeletedAsset()
+	public void OnWillDeletedAsset()
 	{
 		UnRegisterSetting();
 	}
 
-	public void OnMovedAsset()
+	public void OnWillMoveAsset()
 	{ }
 
 	private void DeleteSelfAsset()

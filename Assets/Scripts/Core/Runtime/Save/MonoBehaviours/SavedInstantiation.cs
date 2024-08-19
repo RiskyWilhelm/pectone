@@ -61,6 +61,9 @@ public partial class SavedInstantiation : MonoBehaviour
 	// Update
 	public AsyncOperationHandle<GameObject> InstantiateSavedAsync(InstantiationData data, GuidSerializable guid = default, bool trackHandle = true)
 	{
+		if (data.instantiationParameters.Parent && !data.instantiationParameters.Parent.TryGetComponent<SavedInstantiation>(out _))
+			Debug.LogWarningFormat("Only null or another {0} will work for parent. This instantiation may wont be in the same place in the next session", nameof(SavedInstantiation));
+
 		var handle = Addressables.InstantiateAsync(data.instantiationAssetReference, data.instantiationParameters, trackHandle);
 		
 		handle.Completed +=

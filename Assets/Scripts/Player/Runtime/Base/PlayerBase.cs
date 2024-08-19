@@ -63,7 +63,6 @@ public abstract partial class PlayerBase : MonoBehaviour
 
 	public bool IsGroundedAtVector(Vector3 worldPosition, out RaycastHit hit, int layerMask = Layers.Mask.Ground)
 	{
-		// BoxCast wont give good results when it's Y size is defined.You can debug that in Analysis>Physics
 		var castExtent = (size * 0.25f);
 		var sizeExtent = (size * 0.5f);
 		var currentRotation = SelfRigidbody.rotation;

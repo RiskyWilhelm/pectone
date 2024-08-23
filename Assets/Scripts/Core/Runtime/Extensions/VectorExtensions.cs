@@ -6,40 +6,40 @@ public static class VectorExtensions
 {
 	public static Vector2 Abs(this Vector2 value)
 	{
-		value.x = Mathf.Abs(value.x);
-		value.y = Mathf.Abs(value.y);
+		value.x = Math.Abs(value.x);
+		value.y = Math.Abs(value.y);
 		return value;
 	}
 
 	public static Vector2Int Abs(this Vector2Int value)
 	{
-		value.x = Mathf.Abs(value.x);
-		value.y = Mathf.Abs(value.y);
+		value.x = Math.Abs(value.x);
+		value.y = Math.Abs(value.y);
 		return value;
 	}
 
 	public static Vector3 Abs(this Vector3 value)
 	{
-		value.x = Mathf.Abs(value.x);
-		value.y = Mathf.Abs(value.y);
-		value.z = Mathf.Abs(value.z);
+		value.x = Math.Abs(value.x);
+		value.y = Math.Abs(value.y);
+		value.z = Math.Abs(value.z);
 		return value;
 	}
 
 	public static Vector3Int Abs(this Vector3Int value)
 	{
-		value.x = Mathf.Abs(value.x);
-		value.y = Mathf.Abs(value.y);
-		value.z = Mathf.Abs(value.z);
+		value.x = Math.Abs(value.x);
+		value.y = Math.Abs(value.y);
+		value.z = Math.Abs(value.z);
 		return value;
 	}
 
 	public static Vector4 Abs(this Vector4 value)
 	{
-		value.x = Mathf.Abs(value.x);
-		value.y = Mathf.Abs(value.y);
-		value.z = Mathf.Abs(value.z);
-		value.w = Mathf.Abs(value.w);
+		value.x = Math.Abs(value.x);
+		value.y = Math.Abs(value.y);
+		value.z = Math.Abs(value.z);
+		value.w = Math.Abs(value.w);
 		return value;
 	}
 

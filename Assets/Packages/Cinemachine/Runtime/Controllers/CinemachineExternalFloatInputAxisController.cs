@@ -2,12 +2,12 @@ using System;
 using Unity.Cinemachine;
 using UnityEngine;
 
-public sealed partial class ExternalVector2InputAxisController : InputAxisControllerBase<ExternalVector2InputAxisController.Reader>
+public sealed partial class CinemachineExternalFloatInputAxisController : InputAxisControllerBase<CinemachineExternalFloatInputAxisController.Reader>
 {
 	[Serializable]
 	public class Reader : IInputAxisReader
 	{
-		public ExternalVector2InputAxisController valueController;
+		public CinemachineExternalFloatInputAxisController valueController;
 
 		[Tooltip("Enable this if the input value is inherently dependent on frame time. For example, mouse deltas will naturally be bigger for longer frames, "
 				+ "so in this case the default deltaTime scaling should be canceled.")]
@@ -22,8 +22,8 @@ public sealed partial class ExternalVector2InputAxisController : InputAxisContro
 			if (!valueController)
 				return 0f;
 
-			var value = (hint == IInputAxisOwner.AxisDescriptor.Hints.Y) ? valueController.TemporaryValue.y : valueController.TemporaryValue.x;
-
+			var value = valueController.TemporaryValue;
+				
 			if (cancelDeltaTime && (Time.deltaTime > 0f))
 				value /= Time.deltaTime;
 
@@ -31,17 +31,15 @@ public sealed partial class ExternalVector2InputAxisController : InputAxisContro
 		}
 	}
 
-	private Vector2 _temporaryValue;
+	private float _temporaryValue;
 
-	public Vector2 TemporaryValue
+	public float TemporaryValue
 	{
 		get => _temporaryValue;
 		set
 		{
 			_temporaryValue = value;
-
-			if (isActiveAndEnabled)
-				UpdateControllers();
+			UpdateControllers();
 		}
 	}
 
@@ -58,7 +56,7 @@ public sealed partial class ExternalVector2InputAxisController : InputAxisContro
 #if UNITY_EDITOR
 
 [ExecuteAlways]
-public sealed partial class ExternalVector2InputAxisController
+public sealed partial class CinemachineExternalFloatInputAxisController
 { }
 
 

@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public sealed partial class FloatingOriginRigidbody : MonoBehaviour
 {
-	#region FloatingOriginSingleton Floating Origin
+	#region FloatingOriginRigidbody Floating Origin
 
 	[SerializeField]
 	private Rigidbody selfRigidbody;

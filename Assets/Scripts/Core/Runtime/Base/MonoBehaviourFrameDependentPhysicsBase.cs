@@ -21,7 +21,7 @@ public abstract partial class MonoBehaviourFrameDependentPhysics<InteractionEnum
 		DoFrameDependentPhysics();
 	}
 
-	public void DoFrameDependentPhysics()
+	protected void DoFrameDependentPhysics()
 	{
 		for (int i = FrameDependentInteractionQueue.Count; i > 0; i--)
 		{
@@ -48,7 +48,7 @@ public abstract partial class MonoBehaviourFrameDependentPhysics<InteractionEnum
 
 	/// <summary> In 3D, OnXXXExit() wont get called when other or self collider is destroyed or disabled. Use this method to call all custom OnXXXExit()'s </summary>
 	/// <remarks> In 2D, you dont need to implement this </remarks>
-	public abstract void CallExitInteractions();
+	protected abstract void CallExitInteractions();
 }
 
 

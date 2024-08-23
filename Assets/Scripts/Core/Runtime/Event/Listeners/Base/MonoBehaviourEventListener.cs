@@ -40,7 +40,7 @@ public abstract partial class MonoBehaviourEventListener : MonoBehaviourEventLis
 			@event.UnRegisterListener(this);
 	}
 
-	public void OnEventRaised()
+	internal void OnEventRaised()
 	{
 		onResponse?.Invoke();
 	}

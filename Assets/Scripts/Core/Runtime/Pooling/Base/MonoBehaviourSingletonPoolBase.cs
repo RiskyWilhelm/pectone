@@ -18,8 +18,18 @@ public abstract partial class MonoBehaviourSingletonPoolBase<SingletonType, Pool
 	// Initialize
 	protected override void Awake()
 	{
-		MainPool = new ObjectPool<PooledObjectType>(OnCreatePooledObject, OnGetPooledObject_Internal, OnReleasePooledObject_Internal, OnDestroyPooledObject, collectionCheck, 10, MaxPoolSize);
+		MainPool = new ObjectPool<PooledObjectType>(OnCreatePooledObject_Internal, OnGetPooledObject_Internal, OnReleasePooledObject_Internal, OnDestroyPooledObject, collectionCheck, 10, MaxPoolSize);
 		base.Awake();
+	}
+
+	private PooledObjectType OnCreatePooledObject_Internal()
+	{
+		var createdObj = OnCreatePooledObject();
+
+		if (createdObj is IPooledObject<PooledObjectType> foundObject)
+			foundObject.ParentPool = this;
+
+		return createdObj;
 	}
 
 	protected abstract PooledObjectType OnCreatePooledObject();
@@ -27,10 +37,7 @@ public abstract partial class MonoBehaviourSingletonPoolBase<SingletonType, Pool
 	private void OnGetPooledObject_Internal(PooledObjectType pooledObject)
 	{
 		if (pooledObject is IPooledObject<PooledObjectType> foundObject)
-		{
-			foundObject.ParentPool = this;
 			foundObject.OnTakenFromPool(this);
-		}
 
 		OnGetPooledObject(pooledObject);
 	}
@@ -94,7 +101,7 @@ public abstract partial class MonoBehaviourSingletonPoolBase<SingletonType, Pool
 	private void OnReleasePooledObject_Internal(PooledObjectType pooledObject)
 	{
 		if (pooledObject is IPooledObject<PooledObjectType> foundObject)
-			foundObject.OnReleaseToPool(this);
+			foundObject.OnReleasedToPool(this);
 
 		OnReleasePooledObject(pooledObject);
 	}

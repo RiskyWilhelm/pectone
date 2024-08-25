@@ -26,7 +26,11 @@ public abstract partial class MonoBehaviourFrameDependentPhysics<InteractionEnum
 		for (int i = FrameDependentInteractionQueue.Count; i > 0; i--)
 		{
 			var iteratedPhysicsInteraction = FrameDependentInteractionQueue.Dequeue();
-			OnFrameDependentFixedUpdateInteraction(iteratedPhysicsInteraction);
+
+			if (iteratedPhysicsInteraction.collider || (iteratedPhysicsInteraction.collision != null))
+				OnFrameDependentFixedUpdateInteraction(iteratedPhysicsInteraction);
+			else
+				Debug.LogWarningFormat("Corrupted PhysicsInteraction catched for interaction type {0}", iteratedPhysicsInteraction.interactionType);
 		}
 	}
 

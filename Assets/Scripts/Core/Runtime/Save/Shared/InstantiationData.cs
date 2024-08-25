@@ -1,14 +1,19 @@
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
-public class InstantiationData : SaveData
+[Serializable]
+[JsonObject(MemberSerialization.OptIn)]
+public class InstantiationData : SaveData, ICopyable<InstantiationData>
 {
 	[JsonProperty]
+	[SerializeField]
 	public AssetReference instantiationAssetReference;
 
 	[JsonProperty]
-	public InstantiationParametersSerializable instantiationParameters;
+	public (Vector3 worldPosition, Quaternion worldRotation) instantiationParams;
 
 	[JsonProperty(ItemReferenceLoopHandling = ReferenceLoopHandling.Ignore)]
 	public Dictionary<GuidSerializable, InstantiationData> childInstantiationDatasDict = new();
@@ -18,9 +23,14 @@ public class InstantiationData : SaveData
 	public InstantiationData()
 	{ }
 
-	public InstantiationData(AssetReferenceGameObject instantiationAssetReference, InstantiationParametersSerializable instantiationParameters)
+
+	// Update
+	public void Copy(in InstantiationData other)
 	{
-		this.instantiationAssetReference = instantiationAssetReference;
-		this.instantiationParameters = instantiationParameters;
+		if (other.instantiationAssetReference != null)
+			this.instantiationAssetReference = new (other.instantiationAssetReference.AssetGUID);
+
+		this.instantiationParams = other.instantiationParams;
+		this.childInstantiationDatasDict = new(other.childInstantiationDatasDict);
 	}
 }

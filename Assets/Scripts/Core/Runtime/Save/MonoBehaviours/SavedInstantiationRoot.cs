@@ -2,10 +2,19 @@ using UnityEngine;
 
 public sealed partial class SavedInstantiationRoot : SavedInstantiation
 {
+	#region SavedInstantiationRoot Other
+
+	protected override bool CanGetAttachedToHandler
+		=> false;
+
+
+	#endregion
+
+
 	// Initialize
-	private void OnEnable()
+	private void Awake()
 	{
-		if (UnityObjectUtils.IsInstantiatedInRuntime(this))
+		if (UObjectUtils.IsInstantiatedInRuntime(this))
 		{
 			Debug.LogError("You cannot instantiate root!");
 			Destroy(this.gameObject);
@@ -17,14 +26,21 @@ public sealed partial class SavedInstantiationRoot : SavedInstantiation
 
 	public void Initialize()
 	{
-		var isFoundLastSave = GameDataControllerSingleton.Data.instantiationDatasDict.TryGetValue(_guid, out _data);
-		if (!isFoundLastSave)
-		{
-			_data = new ();
-			GameDataControllerSingleton.Data.instantiationDatasDict.Add(_guid, _data);
-		}
+		var isFoundLastSave = GameDataControllerSingleton.Data.rootInstantiationDatasDict.TryGetValue(_guid, out InstantiationData found);
+		if (isFoundLastSave)
+			_data = found;
+		else
+			GameDataControllerSingleton.Data.rootInstantiationDatasDict.Add(_guid, _data);
 
 		InstantiateLastChildren();
+	}
+
+
+	// Dispose
+	public override void DestroyWithSave()
+	{
+		GameDataControllerSingleton.Data.rootInstantiationDatasDict.Remove(_guid);
+		base.DestroyWithSave();
 	}
 }
 

@@ -1,6 +1,20 @@
 using System;
 using UnityEngine;
 
+[Flags]
+public enum AcceptedRotationDirectionAxisType
+{
+	None = 0,
+
+	X = 1 << 0,
+
+	Y = 1 << 1,
+
+	Z = 1 << 2,
+
+	All = ~(-1 << 3),
+}
+
 public static class QuaternionExtensions
 {
 	/// <returns> Non-normalized direction vector in world up </returns>
@@ -59,4 +73,24 @@ public static class QuaternionExtensions
 		var finalRotation = Quaternion.LookRotation(newForward, direction);
 		return Quaternion.RotateTowards(a, finalRotation, powerDelta);
 	}
+
+	public static Quaternion RotateToDirection(this Quaternion current, Vector3 direction, Vector3 upwards, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
+	{
+		var newRotation = Quaternion.LookRotation(direction, upwards);
+
+		// Allow only specific axis
+		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.X))
+			newRotation = Quaternion.FromToRotation(newRotation.GetRightDirection(), current.GetRightDirection()) * newRotation;
+
+		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.Y))
+			newRotation = Quaternion.FromToRotation(newRotation.GetUpDirection(), current.GetUpDirection()) * newRotation;
+
+		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.Z))
+			newRotation = Quaternion.FromToRotation(newRotation.GetForwardDirection(), current.GetForwardDirection()) * newRotation;
+
+		return Quaternion.RotateTowards(current, newRotation, powerDelta);
+	}
+
+	public static Quaternion RotateToDirection(this Quaternion current, Vector3 normalizedDirection, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
+		=> current.RotateToDirection(normalizedDirection, Vector3.up, acceptedRotationDirectionAxisType, powerDelta);
 }

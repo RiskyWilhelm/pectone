@@ -1,75 +1,68 @@
 using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Events;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
+[DisallowMultipleComponent]
 public partial class SavedInstantiation : MonoBehaviour
 {
+	[Header("SavedInstantiation Events")]
+	#region SavedInstantiation Events
+
+	public UnityEvent onInitializedWithLastSave = new();
+
+
+	#endregion
+
 	#region SavedInstantiation Data
 
 	[HideInInspector]
 	[SerializeField]
 	protected GuidSerializable _guid = GuidSerializable.NewGuid();
 
-	protected SavedInstantiation _handler;
+	protected SavedInstantiation _parentHandler;
 
-	protected InstantiationData _data;
+	[SerializeField]
+	protected InstantiationData _data = new();
+
+	protected AsyncOperationHandle<GameObject> asyncHandle;
 
 	public GuidSerializable Guid
 		=> _guid;
 
-	public SavedInstantiation Handler
-		=> _handler;
+	public SavedInstantiation ParentHandler
+		=> _parentHandler;
 
 	public InstantiationData Data
-		=> _data;
+	{
+		get => _data;
+		set
+		{
+			_data = value;
+
+			// Update data globally
+			if (_parentHandler && _parentHandler._data.childInstantiationDatasDict.ContainsKey(_guid))
+				_parentHandler._data.childInstantiationDatasDict[_guid] = _data;
+		}
+	}
 
 
 	#endregion
 
+	#region SavedInstantiation Other
+
+	protected virtual bool CanGetAttachedToHandler
+		=> true;
+
+
+	#endregion
 
 	// Initialize
 	public void InstantiateLastChildren()
 	{
 		foreach (var iteratedChildData in _data.childInstantiationDatasDict)
-			InstantiateSavedAsync(iteratedChildData.Value, guid: iteratedChildData.Key);
-	}
-
-	public void Initialize(SavedInstantiation handler, GuidSerializable guid, InstantiationData data)
-	{
-		if (_handler && (_data != null))
-			return;
-
-		if (!handler || (data == null))
-			throw new ArgumentNullException("Cannot initialize with null values");
-
-		if (guid == GuidSerializable.Empty)
-			guid = GuidSerializable.NewGuid();
-
-		_guid = guid;
-		_handler = handler;
-		_data = data;
-
-		// WARNING: TryAdd is giving error due to foreach loop when instantiating last children
-		if (!handler.Data.childInstantiationDatasDict.ContainsKey(guid))
-			handler.Data.childInstantiationDatasDict.Add(guid, _data);
-
-		InstantiateLastChildren();
-	}
-
-
-	// Update
-	public AsyncOperationHandle<GameObject> InstantiateSavedAsync(InstantiationData data, GuidSerializable guid = default, bool trackHandle = true)
-	{
-		if (data.instantiationParameters.Parent && !data.instantiationParameters.Parent.TryGetComponent<SavedInstantiation>(out _))
-			Debug.LogWarningFormat("Only null or another {0} will work for parent. This instantiation may wont be in the same place in the next session", nameof(SavedInstantiation));
-
-		var handle = Addressables.InstantiateAsync(data.instantiationAssetReference, data.instantiationParameters, trackHandle);
-		
-		handle.Completed +=
-			(handle) => InitializeInstantiated(handle, data, guid);
-
-		return handle;
+			InstantiateSavedAsync(iteratedChildData.Value, iteratedChildData.Key);
 	}
 
 	private void InitializeInstantiated(AsyncOperationHandle<GameObject> handle, InstantiationData data, GuidSerializable guid)
@@ -84,7 +77,109 @@ public partial class SavedInstantiation : MonoBehaviour
 			return;
 		}
 
-		instantiated.Initialize(this, guid, data);
+		if (guid == GuidSerializable.Empty)
+			guid = GuidSerializable.NewGuid();
+
+		instantiated._guid = guid;
+		instantiated._data = data;
+		instantiated.asyncHandle = handle;
+		instantiated.AttachToHandler(this);
+		instantiated.InstantiateLastChildren();
+		instantiated.onInitializedWithLastSave?.Invoke();
+	}
+
+
+	// Update
+	public void AttachToHandler(SavedInstantiation newParentHandler)
+	{
+		if (!CanGetAttachedToHandler)
+		{
+			Debug.LogWarningFormat("You cannot attach {0} to any handler", this.GetType());
+			return;
+		}
+
+		if (_parentHandler)
+			_parentHandler._data.childInstantiationDatasDict.Remove(_guid);
+
+		// WARNING: TryAdd() giving error due to foreach loop when instantiating last children
+		if (newParentHandler)
+		{
+			if (!newParentHandler._data.childInstantiationDatasDict.ContainsKey(_guid))
+				newParentHandler._data.childInstantiationDatasDict.Add(_guid, _data);
+
+			this.transform.SetParent(newParentHandler.transform, true);
+		}
+		else
+			this.transform.SetParent(null);
+
+		_parentHandler = newParentHandler;
+	}
+
+	private AsyncOperationHandle<GameObject> InstantiateSavedAsync(InstantiationData data, GuidSerializable guid)
+	{
+		var handle = Addressables.InstantiateAsync(data.instantiationAssetReference, data.instantiationParams.worldPosition, data.instantiationParams.worldRotation, this.transform, true);
+		handle.Completed +=
+			(handle) => InitializeInstantiated(handle, data, guid);
+
+		return handle;
+	}
+
+	/// <param name="updateDataType"> Last <see cref="InstantiationDataT{DataType}.innerData"/> will be gone forever if this method decides to convert </param>
+	public DataType GetDataAs<DataType>(bool updateDataType = true)
+		where DataType : InstantiationData, new()
+	{
+		if (_data is DataType convertedData)
+			return convertedData;
+
+		if (updateDataType)
+			return OverrideDataTypeAs<DataType>();
+
+		throw new ArgumentException($"data type '{_data.GetType()}' is not equal with '{typeof(DataType)}'");
+	}
+
+	/// <inheritdoc cref="GetDataAs{DataType}(bool)"/>
+	public InnerDataType GetInnerDataAs<InnerDataType>(bool updateDataType = true)
+		where InnerDataType : SaveData, ICopyable<InnerDataType>, new()
+	{
+		return GetDataAs<InstantiationDataT<InnerDataType>>(updateDataType).innerData;
+	}
+
+	/// <remarks> If last data type was <see cref="InstantiationDataT{DataType}"/>, last <see cref="InstantiationDataT{DataType}.innerData"/> will be gone forever if this method decides to convert </remarks>
+	public NewDataType OverrideDataTypeAs<NewDataType>()
+		where NewDataType : InstantiationData, new()
+	{
+		if (_data.GetType() == typeof(NewDataType))
+			return _data as NewDataType;
+
+		var lastInstantiationData = _data;
+		var newInstantiationData = new NewDataType();
+		newInstantiationData.Copy(lastInstantiationData);
+		Data = newInstantiationData;
+
+		return newInstantiationData;
+	}
+
+	/// <remarks>
+	/// If current data is just <see cref="InstantiationData"/>, updates the whole type with <see cref="InstantiationDataT{DataType}"/> <br/>
+	/// If last data type was <see cref="InstantiationDataT{DataType}"/>, last <see cref="InstantiationDataT{DataType}.innerData"/> will be gone forever if this method decides to convert
+	/// </remarks>
+	public NewInnerDataType OverrideInnerDataTypeAs<NewInnerDataType>()
+		where NewInnerDataType : SaveData, ICopyable<NewInnerDataType>, new()
+	{
+		return OverrideDataTypeAs<InstantiationDataT<NewInnerDataType>>().innerData;
+	}
+
+
+	// Dispose
+	public virtual void DestroyWithSave()
+	{
+		if (_parentHandler)
+			_parentHandler._data.childInstantiationDatasDict.Remove(_guid);
+
+		if (asyncHandle.IsValid())
+			asyncHandle.Release();
+		else
+			Destroy(this.gameObject);
 	}
 }
 

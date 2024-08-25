@@ -17,6 +17,10 @@ public sealed partial class Interactable : MonoBehaviour
 
 	private ReadOnlySet<Interactor> _interactorsRSet;
 
+	[field: SerializeField]
+	public InteractableType IType
+	{ get; private set; }
+
 	private HashSet<Interactor> InteractorsSet
 	{
 		get

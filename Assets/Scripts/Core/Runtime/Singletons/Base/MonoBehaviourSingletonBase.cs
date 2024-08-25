@@ -11,7 +11,11 @@ public abstract partial class MonoBehaviourSingletonBase<SingletonType> : MonoBe
     {
         get
         {
-            if (_instance == null)
+			if (GameControllerPersistentSingleton.IsQuitting)
+				throw new Exception(string.Format("Cannot access {0} when quitting the game." +
+					" You are probably trying to instantiate or access in OnDestroy() or OnDisable().", typeof(SingletonType).Name));
+
+			if (_instance == null)
                 FindOrTryCreateSingleton();
 
             return _instance;
@@ -67,8 +71,8 @@ public abstract partial class MonoBehaviourSingletonBase<SingletonType> : MonoBe
 
     public static void FindOrTryCreateSingleton()
     {
-        // Try to find
-        if (_instance == null)
+		// Try to find
+		if (_instance == null)
             _instance = FindFirstObjectByType<SingletonType>(findObjectsInactive: FindObjectsInactive.Include);
 
         // If still cant find, try to create

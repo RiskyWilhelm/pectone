@@ -254,38 +254,47 @@ public static class VectorExtensions
 		return isFoundNearest;
 	}
 
-	/// <returns> Normalized vector </returns>
 	public static Vector2 GetWorldDirectionTo(this Vector2 a, Vector2 b)
 	{
 		return (b - a).normalized;
 	}
 
-	/// <inheritdoc cref="GetWorldDirectionTo(Vector2, Vector2)"/>
 	public static Vector3 GetWorldDirectionTo(this Vector3 a, Vector3 b)
 	{
 		return (b - a).normalized;
 	}
 
-	/// <inheritdoc cref="GetWorldDirectionTo(Vector2, Vector2)"/>
 	public static Vector4 GetWorldDirectionTo(this Vector4 a, Vector4 b)
 	{
 		return (b - a).normalized;
 	}
 
-	/// <returns> Non-normalized world direction vector </returns>
-	public static Vector2 GetDirectionWithMagnitudeTo(this Vector2 a, Vector2 b)
+	public static Vector2 GetWorldDirectionWithMagnitudeTo(this Vector2 a, Vector2 b)
 	{
 		return (b - a);
 	}
 
-	/// <inheritdoc cref="GetDirectionWithMagnitudeTo(Vector2, Vector2)"/>
-	public static Vector3 GetDirectionWithMagnitudeTo(this Vector3 a, Vector3 b)
+	public static Vector3 GetWorldDirectionWithMagnitudeTo(this Vector3 a, Vector3 b)
 	{
 		return (b - a);
 	}
 
-	/// <inheritdoc cref="GetDirectionWithMagnitudeTo(Vector2, Vector2)"/>
-	public static Vector4 GetDirectionWithMagnitudeTo(this Vector4 a, Vector4 b)
+	public static Vector4 GetWorldDirectionWithMagnitudeTo(this Vector4 a, Vector4 b)
+	{
+		return (b - a);
+	}
+
+	public static Vector2 GetDifferenceTo(this Vector2 a, Vector2 b)
+	{
+		return (b - a);
+	}
+
+	public static Vector3 GetDifferenceTo(this Vector3 a, Vector3 b)
+	{
+		return (b - a);
+	}
+
+	public static Vector4 GetDifferenceTo(this Vector4 a, Vector4 b)
 	{
 		return (b - a);
 	}

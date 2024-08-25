@@ -1,2 +1,2 @@
-public class SaveData
+public abstract class SaveData
 { }

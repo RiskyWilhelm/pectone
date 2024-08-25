@@ -214,7 +214,6 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 		leftWing.Span01 = newWingSpan01;
 	}
 
-
 	protected override void OnGrounded()
 	{
 		groundedCamera.Priority = 1;
@@ -231,28 +230,33 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 	public void OnMovementJoystickInputChanged(Vector2 input)
     {
+		if (input == Vector2.zero)
+		{
+			movementController.NormalizedMovingDirection = input;
+			return;
+		}
+
+		var movementRigidbody = movementController.SelfRigidbody;
 		var normalizedInput = input.normalized;
 		var inputForward = new Vector3(normalizedInput.x, 0f, normalizedInput.y);
 
-		if (IsGrounded && (normalizedInput != Vector2.zero))
+		if (IsGrounded)
 		{
-			var movementRigidbody = movementController.SelfRigidbody;
-
 			// Align the forward vector with relative transform
 			var relativeAlignedInputBasedForward = (relativeMovementTransform.rotation * inputForward);
 			var relativeAlignedRotation = Quaternion.LookRotation(relativeAlignedInputBasedForward);
 
 			// Equalize up rotation to surface
 			var surfaceAlignedRotation = relativeAlignedRotation.EqualizeUpRotationWithDirection(CurrentIsGroundedHit.normal);
-			var surfaceAlignedForward = surfaceAlignedRotation.GetForwardDirection().normalized;
+			var surfaceAlignedForward = surfaceAlignedRotation.GetForwardDirection();
 
-			movementController.SetMovingDirection(surfaceAlignedForward);
-			movementController.UpdateRotationByCurrentDirection(movementRigidbody.rotation.GetUpDirection(), (MovableRotationAxisType.X | MovableRotationAxisType.Z));
+			movementController.NormalizedMovingDirection = surfaceAlignedForward;
+			movementRigidbody.rotation = movementRigidbody.rotation.RotateToDirection(movementController.NormalizedMovingDirection, movementRigidbody.rotation.GetUpDirection(), (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
 		}
 		else
 		{
 			movementController.SetMovingDirectionRelativeToTransform(relativeMovementTransform, inputForward);
-			movementController.UpdateRotationByCurrentDirection(relativeMovementTransform.up, (MovableRotationAxisType.X | MovableRotationAxisType.Z));
+			movementRigidbody.rotation = movementRigidbody.rotation.RotateToDirection(movementController.NormalizedMovingDirection, relativeMovementTransform.up, (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
 		}
 	}
 }

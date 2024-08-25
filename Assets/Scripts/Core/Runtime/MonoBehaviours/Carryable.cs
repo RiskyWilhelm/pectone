@@ -10,6 +10,10 @@ public sealed partial class Carryable : MonoBehaviour
 
 	public List<CarryierType> acceptedCarryiersList = new();
 
+	[field: SerializeField]
+	public CarryableType CType
+	{ get; private set; }
+
 	public Carryier CurrentCarryier
 	{ get; internal set; }
 

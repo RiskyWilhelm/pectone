@@ -2,8 +2,8 @@ using UnityEngine;
 
 public sealed partial class ConstantRotation : MonoBehaviour
 {
-	[Header("DirectionRelativeRotation Movement")]
-	#region DirectionRelativeRotation Movement
+	[Header("ConstantRotation Movement")]
+	#region ConstantRotation Movement
 
 	[SerializeField]
 	private Transform controlled;
@@ -40,7 +40,7 @@ public sealed partial class ConstantRotation : MonoBehaviour
 	// TODO: A boolean can control if method will control both rotation axis x or z
 	private void UpdateRotation()
 	{
-		controlled.rotation = Quaternion.RotateTowards(controlled.rotation, Quaternion.Euler(rotationEuler), 360f);
+		controlled.rotation = Quaternion.Euler(rotationEuler);
 	}
 }
 

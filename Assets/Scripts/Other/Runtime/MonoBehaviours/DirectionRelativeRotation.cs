@@ -9,16 +9,13 @@ public sealed partial class DirectionRelativeRotation : MonoBehaviour
 	private Transform relativeTo;
 
 	[SerializeField]
-	private Rigidbody controlled;
-
-	[SerializeField]
-	private bool isReversed;
+	private Rigidbody selfRigidbody;
 
 	[SerializeField]
 	private UpdateType updateType = UpdateType.FixedUpdate;
 
 	[SerializeField]
-	private DirectionRelativeRotationAxisType controlledAxisTypes = DirectionRelativeRotationAxisType.Y;
+	private AcceptedRotationDirectionAxisType controlledAxisTypes = AcceptedRotationDirectionAxisType.All;
 
     private Vector3 lastPosition;
 
@@ -29,7 +26,7 @@ public sealed partial class DirectionRelativeRotation : MonoBehaviour
 	// Initialize
 	private void Start()
 	{
-		lastPosition = controlled.position;
+		lastPosition = selfRigidbody.position;
 	}
 
 
@@ -37,43 +34,28 @@ public sealed partial class DirectionRelativeRotation : MonoBehaviour
 	private void Update()
 	{
 		if (updateType is UpdateType.Update)
-			UpdateRotation();
+			UpdateRotationByCurrentDirection();
 	}
 
 	private void FixedUpdate()
 	{
 		if (updateType is UpdateType.FixedUpdate)
-			UpdateRotation();
+			UpdateRotationByCurrentDirection();
 	}
 
 	private void LateUpdate()
 	{
 		if (updateType is UpdateType.LateUpdate)
-			UpdateRotation();
+			UpdateRotationByCurrentDirection();
 	}
 
-	private void UpdateRotation()
+	private void UpdateRotationByCurrentDirection()
 	{
-		var newLookDirection = lastPosition.GetDirectionWithMagnitudeTo(relativeTo.position);
-
-		if (newLookDirection.Approximately(Vector3.zero))
-		{
-			lastPosition = relativeTo.position;
+		var currentDirection = relativeTo.position.GetWorldDirectionWithMagnitudeTo(lastPosition);
+		if (currentDirection == Vector3.zero)
 			return;
-		}
 
-		var newRotationEulerAngles = Quaternion.LookRotation(newLookDirection).eulerAngles;
-
-		if (!controlledAxisTypes.HasFlag(DirectionRelativeRotationAxisType.X))
-			newRotationEulerAngles.x = relativeTo.rotation.eulerAngles.x;
-
-		if (!controlledAxisTypes.HasFlag(DirectionRelativeRotationAxisType.Y))
-			newRotationEulerAngles.y = relativeTo.rotation.eulerAngles.y;
-
-		if (!controlledAxisTypes.HasFlag(DirectionRelativeRotationAxisType.Z))
-			newRotationEulerAngles.z = relativeTo.rotation.eulerAngles.z;
-
-		controlled.rotation = Quaternion.Euler(newRotationEulerAngles);
+		selfRigidbody.rotation = selfRigidbody.rotation.RotateToDirection(currentDirection, controlledAxisTypes);
 		lastPosition = relativeTo.position;
 	}
 }

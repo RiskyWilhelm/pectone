@@ -10,8 +10,6 @@ using UnityEngine;
 [JsonObject(MemberSerialization.OptIn)]
 public struct GuidSerializable : IEquatable<GuidSerializable>
 {
-	private static readonly GuidSerializable k_Empty = Guid.Empty;
-
 	[SerializeField]
 	[HideInInspector]
 	[JsonProperty]
@@ -23,7 +21,7 @@ public struct GuidSerializable : IEquatable<GuidSerializable>
 	private ulong guidHigh;
 
 	/// <summary> Represents <see cref="Guid.Empty"/>, a GUID where the value is all zero </summary>
-	public static GuidSerializable Empty => k_Empty;
+	public static GuidSerializable Empty => Guid.Empty;
 
 	/// <summary> Reconstructs a <see cref="System.Guid"/> from two <see cref="ulong"/> values representing the low and high bytes </summary>
 	public readonly Guid Guid => GuidUtils.Compose(guidLow, guidHigh);

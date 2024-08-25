@@ -60,9 +60,11 @@ public sealed partial class RotationalPull : MonoBehaviour
         }
     }
 
+	// WARNING: Support implementation for custom Events
 	public void OnRigidbodyTriggerEnter(Collider other)
 	{
-		if (other.attachedRigidbody)
+		var attachedRigidbody = other.attachedRigidbody;
+		if (attachedRigidbody && !attachedRigidbody.isKinematic)
 			registeredRigibodiesSet.Add(other.attachedRigidbody);
 	}
 
@@ -86,7 +88,7 @@ public sealed partial class RotationalPull : MonoBehaviour
 public sealed partial class RotationalPull
 {
 	[Header("RotationalPull Edit")]
-	[RenameLabelTo("Is Activated Interactive Editing")]
+	[RenameLabelTo("Activate Interactive Editing")]
 	public bool e_IsActivatedInteractiveEditing;
 }
 

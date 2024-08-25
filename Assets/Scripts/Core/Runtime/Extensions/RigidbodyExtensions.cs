@@ -40,4 +40,21 @@ public static class RigidbodyExtensions
 	{
 		return IsMovingApproximately(rigidbody, allowedDifference) || IsRotatingApproximately(rigidbody, allowedDifference);
 	}
+
+	/// <param name="maxVelocity"> If you dont want velocity limit on specific axises, set them to zero </param>
+	public static void LimitLinearVelocity(this Rigidbody rigidbody, Vector3 maxVelocity)
+	{
+		var updatedLinearVelocity = rigidbody.linearVelocity;
+
+		if (maxVelocity.x > 0f)
+			updatedLinearVelocity.x = Mathf.Clamp(updatedLinearVelocity.x, -maxVelocity.x, maxVelocity.x);
+
+		if (maxVelocity.y > 0f)
+			updatedLinearVelocity.y = Mathf.Clamp(updatedLinearVelocity.y, -maxVelocity.y, maxVelocity.y);
+
+		if (maxVelocity.z > 0f)
+			updatedLinearVelocity.z = Mathf.Clamp(updatedLinearVelocity.z, -maxVelocity.z, maxVelocity.z);
+
+		rigidbody.linearVelocity = updatedLinearVelocity;
+	}
 }

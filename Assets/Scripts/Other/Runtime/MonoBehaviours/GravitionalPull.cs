@@ -66,9 +66,11 @@ public sealed partial class GravitionalPull : MonoBehaviour
 	public void UnRegisterChildRigidbody(Rigidbody childRigidbody)
 		=> registeredRigibodiesSet.Remove(childRigidbody);
 
+	// WARNING: Support implementation for custom Events
 	public void OnRigidbodyTriggerEnter(Collider other)
 	{
-		if (other.attachedRigidbody)
+		var attachedRigidbody = other.attachedRigidbody;
+		if (attachedRigidbody && !attachedRigidbody.isKinematic)
 			registeredRigibodiesSet.Add(other.attachedRigidbody);
 	}
 

@@ -14,7 +14,7 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 	[SerializeField]
 	private Rigidbody alignRigidbody;
 
-	public bool doShiftingEveryAllowedDistance;
+	public bool doShiftingEveryAllowedDistance = true;
 
 	public uint allowedDistance = 3000;
 

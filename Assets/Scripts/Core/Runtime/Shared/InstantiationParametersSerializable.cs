@@ -59,13 +59,13 @@ public struct InstantiationParametersSerializable
   
     /// <summary> Create a new InstantationParameters class that will set the parent transform and use the prefab transform. </summary>
     /// <param name="parent">Transform to set as the parent of the instantiated object.</param>
-    /// <param name="instantiateInWorldSpace">Flag to tell the IInstanceProvider whether to set the position and rotation on new instances.</param>
-    public InstantiationParametersSerializable(Transform parent, bool instantiateInWorldSpace)
+    /// <param name="instantiateInWorldPosition">Flag to tell the IInstanceProvider whether to set the position and rotation on new instances.</param>
+    public InstantiationParametersSerializable(Transform parent, bool instantiateInWorldPosition)
     {
         _position = Vector3.zero;
         _rotation = Vector3.zero;
         this.parent = parent;
-        _instantiateInWorldPosition = instantiateInWorldSpace;
+        _instantiateInWorldPosition = instantiateInWorldPosition;
         _setPositionRotation = false;
     }
 

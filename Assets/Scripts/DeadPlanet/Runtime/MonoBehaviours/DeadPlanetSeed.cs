@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed partial class DeadPlanetSeed : MonoBehaviour
+public sealed partial class DeadPlanetSeed : MonoBehaviour, IDataRequester<DeadPlanetSeedData>
 {
 	[Header("DeadPlanetSeed Movement")]
 	#region DeadPlanetSeed Movement
@@ -18,9 +18,6 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour
 	private Transform selfGrowObject;
 
 	[SerializeField]
-	private SavedInstantiation selfSavedInstantiation;
-
-	[SerializeField]
     private float growSpeed;
 
     [SerializeField]
@@ -34,12 +31,23 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour
 
 	#endregion
 
+	[Header("DeadPlanetSeed Data")]
+	#region DeadPlanetSeed Data
+
+	[SerializeField]
+	private SavedDeadPlanetSeed selfSave;
+
+
+	#endregion
+
 
 	// Update
 	private void Update()
 	{
 		if (isPlanted)
 			SetCurrentGrowRadius(Mathf.MoveTowards(currentGrowRadius, desiredGrowRadius, growSpeed * Time.deltaTime));
+
+		OverrideCurrentData();
 	}
 
 	private void SetCurrentGrowRadius(float value)
@@ -50,34 +58,36 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour
 
 	private void SaveToCollidedGround(SavedInstantiation saveRoot)
 	{
-		if (selfSavedInstantiation.ParentHandler)
+		selfRigidbody.isKinematic = true;
+		isPlanted = true;
+
+		if (!selfSave || !selfSave.IsLoadedData || selfSave.ParentHandler)
 			return;
 
-		selfSavedInstantiation.AttachToHandler(saveRoot);
-		selfSavedInstantiation.OverrideInnerDataTypeAs<DeadPlanetSeedData>();
-		selfSavedInstantiation.Data.instantiationParams = new(this.transform.position, this.transform.rotation);
-
-		selfRigidbody.isKinematic = true;
-		isPlanted = true;
-
-		// DEBUG
-		GameDataControllerSingleton.Instance.SaveToFile();
-	}
-
-	// WARNING: Support implementation for custom Events
-	public void OnInstantiatedWithLastSave()
-	{
-		var seedData = selfSavedInstantiation.GetInnerDataAs<DeadPlanetSeedData>();
-		SetCurrentGrowRadius(seedData.currentGrowRadius);
-
-		selfRigidbody.isKinematic = true;
-		isPlanted = true;
+		selfSave.AttachToHandler(saveRoot);
 	}
 
 	public void OnGroundCollisionEnter(Collision other)
 	{
 		if ((other.collider.gameObject.layer is Layers.Ground) && EventReflectorUtils.TryGetComponentByEventReflector<SavedInstantiation>(other.collider.gameObject, out SavedInstantiation found))
 			SaveToCollidedGround(found);
+	}
+
+	public void OverrideCurrentData()
+	{
+		if (!selfSave || !selfSave.IsLoadedData)
+			return;
+
+		selfSave.Data.instantiationParams = new(this.transform.position, this.transform.rotation);
+		selfSave.InnerData.currentGrowRadius = 5f;
+	}
+
+	// WARNING: Support implementation for custom Events
+	public void OnLastDataLoaded(DeadPlanetSeedData loadedData)
+	{
+		SetCurrentGrowRadius(loadedData.currentGrowRadius);
+		selfRigidbody.isKinematic = true;
+		isPlanted = true;
 	}
 }
 

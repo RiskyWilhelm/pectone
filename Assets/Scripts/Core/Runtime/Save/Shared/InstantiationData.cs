@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 
 [Serializable]
 [JsonObject(MemberSerialization.OptIn)]
-public class InstantiationData : SaveData, ICopyable<InstantiationData>
+public class InstantiationData : SaveDataBase, ICopyable<InstantiationData>
 {
 	[JsonProperty]
 	[SerializeField]
@@ -25,6 +25,12 @@ public class InstantiationData : SaveData, ICopyable<InstantiationData>
 
 
 	// Update
+	public override void Copy(in object other)
+	{
+		if (other is InstantiationData same)
+			Copy(same);
+	}
+
 	public void Copy(in InstantiationData other)
 	{
 		if (other.instantiationAssetReference != null)

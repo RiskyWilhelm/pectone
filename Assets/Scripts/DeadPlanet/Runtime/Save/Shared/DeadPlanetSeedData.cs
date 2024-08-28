@@ -3,7 +3,7 @@ using System;
 
 [Serializable]
 [JsonObject(MemberSerialization.OptIn)]
-public sealed class DeadPlanetSeedData : SaveData, ICopyable<DeadPlanetSeedData>
+public sealed class DeadPlanetSeedData : SaveDataBase, ICopyable<DeadPlanetSeedData>
 {
 	[JsonProperty]
 	public float currentGrowRadius;
@@ -15,6 +15,12 @@ public sealed class DeadPlanetSeedData : SaveData, ICopyable<DeadPlanetSeedData>
 
 
 	// Update
+	public override void Copy(in object other)
+	{
+		if (other is DeadPlanetSeedData same)
+			Copy(same);
+	}
+
 	public void Copy(in DeadPlanetSeedData other)
 	{
 		currentGrowRadius = other.currentGrowRadius;

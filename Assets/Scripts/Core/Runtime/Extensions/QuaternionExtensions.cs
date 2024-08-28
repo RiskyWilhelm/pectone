@@ -53,10 +53,10 @@ public static class QuaternionExtensions
 		return a * Vector3.left;
 	}
 
-	/// <summary> Subtracts B using A’s local coords </summary>
-	public static Quaternion SubtractFrom(this Quaternion a, Quaternion b)
+	/// <summary> Subtracts A using B’s local coords (a - b) </summary>
+	public static Quaternion Subtract(this Quaternion a, Quaternion b)
 	{
-		return b * Quaternion.Inverse(a);
+		return a * Quaternion.Inverse(b);
 	}
 
 	/// <param name="preventForwardInvert"> Sometimes the forward is inverted due to quaternions slerping to nearest behaviour. Prevents that and keeps the forward exactly as before </param>

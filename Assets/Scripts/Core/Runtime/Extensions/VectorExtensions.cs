@@ -4,6 +4,54 @@ using UnityEngine;
 
 public static class VectorExtensions
 {
+	public enum Direction
+	{
+		None,
+
+		// 2D
+		Top,
+		TopRight,
+		Right,
+		BottomRight,
+		Bottom,
+		BottomLeft,
+		Left,
+		TopLeft,
+		Middle,
+
+		// 3D
+
+		/// Top side
+		ForwardTop,
+		ForwardTopRight,
+		// TopRight
+		BackTopRight,
+		BackTop,
+		BackTopLeft,
+		// TopLeft
+		ForwardTopLeft,
+
+		/// Middle side
+		Forward,
+		ForwardRight,
+		// Right
+		BackRight,
+		Back,
+		BackLeft,
+		// Left
+		ForwardLeft,
+
+		/// Bottom side
+		ForwardBottom,
+		ForwardBottomRight,
+		// BottomRight
+		BackBottomRight,
+		BackBottom,
+		BackBottomLeft,
+		// BottomLeft
+		ForwardBottomLeft
+	}
+
 	public static Vector2 Abs(this Vector2 value)
 	{
 		value.x = Math.Abs(value.x);
@@ -332,5 +380,142 @@ public static class VectorExtensions
 	public static bool IsNormalizedOrZero(this Vector4 a)
 	{
 		return (a == Vector4.zero) || IsNormalized(a);
+	}
+
+	public static Direction GetDirection2D(float positionX, float positionY, float threshold = 0.5f)
+	{
+		Direction currentDirection = Direction.Middle;
+
+		// Top
+		if (positionY > threshold)
+		{
+			if (positionX > threshold)
+				currentDirection = Direction.TopRight;
+			else if (positionX < -threshold)
+				currentDirection = Direction.TopLeft;
+			else
+				currentDirection = Direction.Top;
+		}
+		// Bottom
+		else if (positionY < -threshold)
+		{
+			if (positionX > threshold)
+				currentDirection = Direction.BottomRight;
+			else if (positionX < -threshold)
+				currentDirection = Direction.BottomLeft;
+			else
+				currentDirection = Direction.Bottom;
+		}
+		// Middle
+		else
+		{
+			if (positionX > threshold)
+				currentDirection = Direction.Right;
+			else if (positionX < -threshold)
+				currentDirection = Direction.Left;
+		}
+
+
+		return currentDirection;
+	}
+
+	public static Direction GetDirection2D(this Vector2 a, float threshold = 0.5f)
+	{
+		return GetDirection2D(a.x, a.y, threshold);
+	}
+
+	public static Direction GetDirection3D(float positionX, float positionY, float positionZ, float threshold = 0.3f)
+	{
+		Direction currentDirection = Direction.Middle;
+
+		// Top
+		if (positionY > threshold)
+		{
+			if (positionZ < threshold && positionZ > -threshold)
+			{
+				if (positionX > threshold)
+					currentDirection = Direction.TopRight;
+				else if (positionX < -threshold)
+					currentDirection = Direction.TopLeft;
+				else
+					currentDirection = Direction.Top;
+			}
+			else
+			{
+				if (positionZ > threshold && positionX > threshold)
+					currentDirection = Direction.ForwardTopRight;
+				else if (positionZ > threshold && positionX < -threshold)
+					currentDirection = Direction.ForwardTopLeft;
+				else if (positionZ < -threshold && positionX > threshold)
+					currentDirection = Direction.BackTopRight;
+				else if (positionZ < -threshold && positionX < -threshold)
+					currentDirection = Direction.BackTopLeft;
+				else if (positionZ > threshold)
+					currentDirection = Direction.ForwardTop;
+				else if (positionZ < -threshold)
+					currentDirection = Direction.BackTop;
+			}
+		}
+		// Bottom
+		else if (positionY < -threshold)
+		{
+			if (positionZ < threshold && positionZ > -threshold)
+			{
+				if (positionX > threshold)
+					currentDirection = Direction.BottomRight;
+				else if (positionX < -threshold)
+					currentDirection = Direction.BottomLeft;
+				else
+					currentDirection = Direction.Bottom;
+			}
+			else
+			{
+				if (positionZ > threshold && positionX > threshold)
+					currentDirection = Direction.ForwardBottomRight;
+				else if (positionZ > threshold && positionX < -threshold)
+					currentDirection = Direction.ForwardBottomLeft;
+				else if (positionZ < -threshold && positionX > threshold)
+					currentDirection = Direction.BackBottomRight;
+				else if (positionZ < -threshold && positionX < -threshold)
+					currentDirection = Direction.BackBottomLeft;
+				else if (positionZ > threshold)
+					currentDirection = Direction.ForwardBottom;
+				else if (positionZ < -threshold)
+					currentDirection = Direction.BackBottom;
+			}
+		}
+		// Middle
+		else
+		{
+			if (positionZ < threshold && positionZ > -threshold)
+			{
+				if (positionX > threshold)
+					currentDirection = Direction.Right;
+				else if (positionX < -threshold)
+					currentDirection = Direction.Left;
+			}
+			else
+			{
+				if (positionZ > threshold && positionX > threshold)
+					currentDirection = Direction.ForwardRight;
+				else if (positionZ > threshold && positionX < -threshold)
+					currentDirection = Direction.ForwardLeft;
+				else if (positionZ < -threshold && positionX > threshold)
+					currentDirection = Direction.BackRight;
+				else if (positionZ < -threshold && positionX < -threshold)
+					currentDirection = Direction.BackLeft;
+				else if (positionZ > threshold)
+					currentDirection = Direction.Forward;
+				else if (positionZ < -threshold)
+					currentDirection = Direction.Back;
+			}
+		}
+
+		return currentDirection;
+	}
+
+	public static Direction GetDirection3D(this Vector3 a, float threshold = 0.5f)
+	{
+		return GetDirection3D(a.x, a.y, a.z, threshold);
 	}
 }

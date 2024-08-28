@@ -48,10 +48,13 @@ public static class IOUtils
 		{
 			if (allowRestoreFromBackup)
 			{
-				Debug.LogWarning($"Error occured, attempting to Rollback: {e}");
+				Debug.LogWarning($"Filed to load file. Attempting to Rollback: {e}");
 
 				SaveBackupAsMainFile(fullPathWithExtension);
+
+				// verify the newly saved file can be loaded successfully
 				Load<LoadObjectType>(fullPathWithExtension, out loadedData, useDecryption, false);
+				return;
 			}
 
 			// if we hit here, one possibility is that the backup file is also corrupt
@@ -115,5 +118,6 @@ public static class IOUtils
 		FixPathByCorrectDirectorySeperator(ref backupFilePath);
 
 		File.Copy(backupFilePath, fullPathWithExtension, true);
+		Debug.LogWarning($"Backup saved as main file to path {fullPathWithExtension}");
 	}
 }

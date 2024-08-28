@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6157001808051862263}
   - component: {fileID: 2971197686210810036}
   - component: {fileID: 8195716281122774410}
-  - component: {fileID: 575691889902399362}
+  - component: {fileID: 1347931818640055041}
   - component: {fileID: 6338104037060879061}
   m_Layer: 0
   m_Name: DeadPlanetSeed
@@ -78,11 +78,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   selfRigidbody: {fileID: 2971197686210810036}
   selfGrowObject: {fileID: 7235501315358537881}
-  selfSavedInstantiation: {fileID: 575691889902399362}
   growSpeed: 0.1
   desiredGrowRadius: 10
   currentGrowRadius: 1
---- !u!114 &575691889902399362
+  selfSave: {fileID: 1347931818640055041}
+--- !u!114 &1347931818640055041
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,16 +91,37 @@ MonoBehaviour:
   m_GameObject: {fileID: 120280778503431459}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0426cff7dda134b438d572548b3c440c, type: 3}
+  m_Script: {fileID: 11500000, guid: 4cfd06dd419639c45a21304dd2843e2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  onInitializedWithLastSave:
+  _gameDataGuid:
+    guidLow: 5700705096035020606
+    guidHigh: 9850180437145198481
+  _data:
+    instantiationAssetReference:
+      m_AssetGUID: 73a746da4cd23ea48b3640604f36b6c4
+      m_SubObjectName: 
+      m_SubObjectGUID: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  onLoadedData:
+    m_PersistentCalls:
+      m_Calls: []
+  onLoadedLastData:
+    m_PersistentCalls:
+      m_Calls: []
+  _innerData:
+    currentGrowRadius: 0
+  onLoadedInnerData:
+    m_PersistentCalls:
+      m_Calls: []
+  onLoadedLastInnerData:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 8195716281122774410}
         m_TargetAssemblyTypeName: DeadPlanetSeed, Pectone.DeadPlanet.Runtime
-        m_MethodName: OnInstantiatedWithLastSave
-        m_Mode: 1
+        m_MethodName: OnLastDataLoaded
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -109,16 +130,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  _guid:
-    guidLow: 5021952269680184549
-    guidHigh: 13982003804981888951
-  _data:
-    instantiationAssetReference:
-      m_AssetGUID: 73a746da4cd23ea48b3640604f36b6c4
-      m_SubObjectName: 
-      m_SubObjectGUID: 
-      m_SubObjectType: 
-      m_EditorAssetChanged: 0
 --- !u!114 &6338104037060879061
 MonoBehaviour:
   m_ObjectHideFlags: 0

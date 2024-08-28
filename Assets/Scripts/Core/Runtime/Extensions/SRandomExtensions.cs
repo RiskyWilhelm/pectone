@@ -1,6 +1,6 @@
 using System;
 
-public static class RandomExtensions
+public static class SRandomExtensions
 {
 	public static float NextFloat(this Random random, float minInclusiveValue, float maxExclusiveValue)
 		=> (float)random.NextDouble(minInclusiveValue, maxExclusiveValue);

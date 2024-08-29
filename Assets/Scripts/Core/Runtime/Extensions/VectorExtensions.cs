@@ -382,140 +382,54 @@ public static class VectorExtensions
 		return (a == Vector4.zero) || IsNormalized(a);
 	}
 
-	public static Direction GetDirection2D(float positionX, float positionY, float threshold = 0.5f)
+	public static Direction GetDirection2D(Vector2 checkDir, Vector2 upwards, bool flipRightwards = false)
 	{
-		Direction currentDirection = Direction.Middle;
+		checkDir.Normalize();
+		upwards.Normalize();
+		var rightwards = upwards.RotateByDegreeAngle(-90f * Math.Sign(flipRightwards ? -1 : 1));
 
-		// Top
-		if (positionY > threshold)
+		float angle = MathF.Acos(Vector2.Dot(rightwards, checkDir)) * Mathf.Rad2Deg;
+
+		// Keep rightwards by flipping it
+		if (Vector2.Dot(upwards, checkDir) < 0)
+			angle = -angle;
+
+		// Keep angle between 0 and 360 (2PI)
+		angle = (angle + 360) % 360;
+
+		if (angle <= 22.5f || angle > 337.5f)
 		{
-			if (positionX > threshold)
-				currentDirection = Direction.TopRight;
-			else if (positionX < -threshold)
-				currentDirection = Direction.TopLeft;
-			else
-				currentDirection = Direction.Top;
+			return Direction.Right;
 		}
-		// Bottom
-		else if (positionY < -threshold)
+		else if (angle > 22.5f && angle <= 67.5f)
 		{
-			if (positionX > threshold)
-				currentDirection = Direction.BottomRight;
-			else if (positionX < -threshold)
-				currentDirection = Direction.BottomLeft;
-			else
-				currentDirection = Direction.Bottom;
+			return Direction.TopRight;
 		}
-		// Middle
-		else
+		else if (angle > 67.5f && angle <= 112.5f)
 		{
-			if (positionX > threshold)
-				currentDirection = Direction.Right;
-			else if (positionX < -threshold)
-				currentDirection = Direction.Left;
+			return Direction.Top;
 		}
-
-
-		return currentDirection;
-	}
-
-	public static Direction GetDirection2D(this Vector2 a, float threshold = 0.5f)
-	{
-		return GetDirection2D(a.x, a.y, threshold);
-	}
-
-	public static Direction GetDirection3D(float positionX, float positionY, float positionZ, float threshold = 0.3f)
-	{
-		Direction currentDirection = Direction.Middle;
-
-		// Top
-		if (positionY > threshold)
+		else if (angle > 112.5f && angle <= 157.5f)
 		{
-			if (positionZ < threshold && positionZ > -threshold)
-			{
-				if (positionX > threshold)
-					currentDirection = Direction.TopRight;
-				else if (positionX < -threshold)
-					currentDirection = Direction.TopLeft;
-				else
-					currentDirection = Direction.Top;
-			}
-			else
-			{
-				if (positionZ > threshold && positionX > threshold)
-					currentDirection = Direction.ForwardTopRight;
-				else if (positionZ > threshold && positionX < -threshold)
-					currentDirection = Direction.ForwardTopLeft;
-				else if (positionZ < -threshold && positionX > threshold)
-					currentDirection = Direction.BackTopRight;
-				else if (positionZ < -threshold && positionX < -threshold)
-					currentDirection = Direction.BackTopLeft;
-				else if (positionZ > threshold)
-					currentDirection = Direction.ForwardTop;
-				else if (positionZ < -threshold)
-					currentDirection = Direction.BackTop;
-			}
+			return Direction.TopLeft;
 		}
-		// Bottom
-		else if (positionY < -threshold)
+		else if (angle > 157.5f && angle <= 202.5f)
 		{
-			if (positionZ < threshold && positionZ > -threshold)
-			{
-				if (positionX > threshold)
-					currentDirection = Direction.BottomRight;
-				else if (positionX < -threshold)
-					currentDirection = Direction.BottomLeft;
-				else
-					currentDirection = Direction.Bottom;
-			}
-			else
-			{
-				if (positionZ > threshold && positionX > threshold)
-					currentDirection = Direction.ForwardBottomRight;
-				else if (positionZ > threshold && positionX < -threshold)
-					currentDirection = Direction.ForwardBottomLeft;
-				else if (positionZ < -threshold && positionX > threshold)
-					currentDirection = Direction.BackBottomRight;
-				else if (positionZ < -threshold && positionX < -threshold)
-					currentDirection = Direction.BackBottomLeft;
-				else if (positionZ > threshold)
-					currentDirection = Direction.ForwardBottom;
-				else if (positionZ < -threshold)
-					currentDirection = Direction.BackBottom;
-			}
+			return Direction.Left;
 		}
-		// Middle
-		else
+		else if (angle > 202.5f && angle <= 247.5f)
 		{
-			if (positionZ < threshold && positionZ > -threshold)
-			{
-				if (positionX > threshold)
-					currentDirection = Direction.Right;
-				else if (positionX < -threshold)
-					currentDirection = Direction.Left;
-			}
-			else
-			{
-				if (positionZ > threshold && positionX > threshold)
-					currentDirection = Direction.ForwardRight;
-				else if (positionZ > threshold && positionX < -threshold)
-					currentDirection = Direction.ForwardLeft;
-				else if (positionZ < -threshold && positionX > threshold)
-					currentDirection = Direction.BackRight;
-				else if (positionZ < -threshold && positionX < -threshold)
-					currentDirection = Direction.BackLeft;
-				else if (positionZ > threshold)
-					currentDirection = Direction.Forward;
-				else if (positionZ < -threshold)
-					currentDirection = Direction.Back;
-			}
+			return Direction.BottomLeft;
+		}
+		else if (angle > 247.5f && angle <= 292.5f)
+		{
+			return Direction.Bottom;
+		}
+		else if (angle > 292.5f && angle <= 337.5f)
+		{
+			return Direction.BottomRight;
 		}
 
-		return currentDirection;
-	}
-
-	public static Direction GetDirection3D(this Vector3 a, float threshold = 0.5f)
-	{
-		return GetDirection3D(a.x, a.y, a.z, threshold);
+		return Direction.None;
 	}
 }

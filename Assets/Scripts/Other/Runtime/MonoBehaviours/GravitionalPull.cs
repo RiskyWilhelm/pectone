@@ -43,9 +43,9 @@ public sealed partial class GravitionalPull : MonoBehaviour
 		if (!isUsingOriginForPull)
 		{
 			if (isPullDirectionWorldAxis)
-				pullDirection = Quaternion.Euler(pullDirectionWorldEuler).GetForwardDirection();
+				pullDirection = Quaternion.Euler(pullDirectionWorldEuler).ForwardDirection();
 			else
-				pullDirection = this.transform.rotation * Quaternion.Euler(pullDirectionWorldEuler).GetForwardDirection();
+				pullDirection = this.transform.rotation * Quaternion.Euler(pullDirectionWorldEuler).ForwardDirection();
 		}
 
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)

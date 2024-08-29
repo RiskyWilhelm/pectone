@@ -4,28 +4,16 @@ public static class BoxColliderExtensions
 {
 	public static Vector3 GetRandomPoint(this BoxCollider a)
 	{
-		Vector3 extents = a.bounds.extents;
-		Vector3 localPoint = new (
-			Random.Range(-extents.x, extents.x),
-			Random.Range(-extents.y, extents.y),
-			Random.Range(-extents.z, extents.z)
-		);
+		return a.transform.TransformPoint(BoundsUtils.GetRandomPoint(a.center, a.size));
+	}
 
-		localPoint += a.center;
-		return a.transform.TransformPoint(localPoint);
+	public static Vector3 GetRandomPointInOuter(this BoxCollider a, Vector3 dismissBoxSize)
+	{
+		return a.transform.TransformPoint(BoundsUtils.GetRandomPointInOuter(a.center, a.size, dismissBoxSize));
 	}
 
 	public static Vector3 GetRandomPointAtSurface(this BoxCollider a)
 	{
-		Vector3 extents = a.bounds.extents;
-		Vector3 localPoint = new (
-			Random.Range(-extents.x, extents.x),
-			Random.Range(-extents.y, extents.y),
-			Random.Range(-extents.z, extents.z)
-		);
-
-		localPoint = Vector3.Scale(localPoint.normalized, extents);
-		localPoint += a.center;
-		return a.transform.TransformPoint(localPoint);
+		return a.transform.TransformPoint(BoundsUtils.GetRandomPointAtSurface(a.center, a.size));
 	}
 }

@@ -70,30 +70,30 @@ public abstract partial class PlayerBase : MonoBehaviour
 
 		// Check the 6 main direction because the player may be floating in the air
 		(Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float maxDistance, int layerMask) castSettings =
-			(worldPosition, new Vector3(castExtent.x - 0.05f, castExtent.y - 0.05f, castExtent.z - 0.05f), currentRotation.GetDownDirection(), currentRotation, sizeExtent.y + acceptedDistanceForIsGroundedCheck, layerMask);
+			(worldPosition, new Vector3(castExtent.x - 0.05f, castExtent.y - 0.05f, castExtent.z - 0.05f), currentRotation.DownDirection(), currentRotation, sizeExtent.y + acceptedDistanceForIsGroundedCheck, layerMask);
 
 		if (DoCast(castSettings, out hit))
 			return true;
 
-		castSettings.direction = currentRotation.GetUpDirection();
+		castSettings.direction = currentRotation.UpDirection();
 		if (DoCast(castSettings, out hit))
 			return true;
 
-		castSettings.direction = currentRotation.GetRightDirection();
+		castSettings.direction = currentRotation.RightDirection();
 		castSettings.maxDistance = sizeExtent.x + acceptedDistanceForIsGroundedCheck;
 		if (DoCast(castSettings, out hit))
 			return true;
 
-		castSettings.direction = currentRotation.GetLeftDirection();
+		castSettings.direction = currentRotation.LeftDirection();
 		if (DoCast(castSettings, out hit))
 			return true;
 
-		castSettings.direction = currentRotation.GetBackDirection();
+		castSettings.direction = currentRotation.BackDirection();
 		castSettings.maxDistance = sizeExtent.z + acceptedDistanceForIsGroundedCheck;
 		if (DoCast(castSettings, out hit))
 			return true;
 
-		castSettings.direction = currentRotation.GetForwardDirection();
+		castSettings.direction = currentRotation.ForwardDirection();
 		if (DoCast(castSettings, out hit))
 			return true;
 
@@ -136,14 +136,14 @@ public abstract partial class PlayerBase
 		var currentRotation = SelfRigidbody.rotation;
 
 		Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetDownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetUpDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetRightDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetLeftDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetBackDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.GetForwardDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.DownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.UpDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.RightDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.LeftDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.BackDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
+		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.ForwardDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
 
-		Handles.Label(this.transform.position + (currentRotation.GetDownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)), "Grounded Check");
+		Handles.Label(this.transform.position + (currentRotation.DownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)), "Grounded Check");
 	}
 }
 

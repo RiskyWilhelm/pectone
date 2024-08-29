@@ -17,38 +17,38 @@ public enum AcceptedRotationDirectionAxisType
 
 public static class QuaternionExtensions
 {
-	/// <returns> Non-normalized direction vector in world up </returns>
-	public static Vector3 GetForwardDirection(this Quaternion a)
+	/// <returns> Non-normalized local direction </returns>
+	public static Vector3 ForwardDirection(this Quaternion a)
 	{
 		return a * Vector3.forward;
 	}
 
-	/// <inheritdoc cref="GetForwardDirection(Quaternion)"/>
-	public static Vector3 GetBackDirection(this Quaternion a)
+	/// <inheritdoc cref="ForwardDirection(Quaternion)"/>
+	public static Vector3 BackDirection(this Quaternion a)
 	{
 		return a * Vector3.back;
 	}
 
-	/// <inheritdoc cref="GetForwardDirection(Quaternion)"/>
-	public static Vector3 GetUpDirection(this Quaternion a)
+	/// <inheritdoc cref="ForwardDirection(Quaternion)"/>
+	public static Vector3 UpDirection(this Quaternion a)
 	{
 		return a * Vector3.up;
 	}
 
-	/// <inheritdoc cref="GetForwardDirection(Quaternion)"/>
-	public static Vector3 GetDownDirection(this Quaternion a)
+	/// <inheritdoc cref="ForwardDirection(Quaternion)"/>
+	public static Vector3 DownDirection(this Quaternion a)
 	{
 		return a * Vector3.down;
 	}
 
-	/// <inheritdoc cref="GetForwardDirection(Quaternion)"/>
-	public static Vector3 GetRightDirection(this Quaternion a)
+	/// <inheritdoc cref="ForwardDirection(Quaternion)"/>
+	public static Vector3 RightDirection(this Quaternion a)
 	{
 		return a * Vector3.right;
 	}
 
-	/// <inheritdoc cref="GetForwardDirection(Quaternion)"/>
-	public static Vector3 GetLeftDirection(this Quaternion a)
+	/// <inheritdoc cref="ForwardDirection(Quaternion)"/>
+	public static Vector3 LeftDirection(this Quaternion a)
 	{
 		return a * Vector3.left;
 	}
@@ -65,7 +65,7 @@ public static class QuaternionExtensions
 		if (powerDelta == 0f)
 			return a;
 
-		var newForward = a.GetForwardDirection();
+		var newForward = a.ForwardDirection();
 
 		if (preventForwardInvert)
 			newForward = Vector3.ProjectOnPlane(newForward, direction).normalized;
@@ -74,23 +74,23 @@ public static class QuaternionExtensions
 		return Quaternion.RotateTowards(a, finalRotation, powerDelta);
 	}
 
-	public static Quaternion RotateToDirection(this Quaternion current, Vector3 direction, Vector3 upwards, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
+	public static Quaternion RotateTowardsDirection(this Quaternion current, Vector3 direction, Vector3 upwards, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
 	{
 		var newRotation = Quaternion.LookRotation(direction, upwards);
 
 		// Allow only specific axis
 		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.X))
-			newRotation = Quaternion.FromToRotation(newRotation.GetRightDirection(), current.GetRightDirection()) * newRotation;
+			newRotation = Quaternion.FromToRotation(newRotation.RightDirection(), current.RightDirection()) * newRotation;
 
 		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.Y))
-			newRotation = Quaternion.FromToRotation(newRotation.GetUpDirection(), current.GetUpDirection()) * newRotation;
+			newRotation = Quaternion.FromToRotation(newRotation.UpDirection(), current.UpDirection()) * newRotation;
 
 		if (!acceptedRotationDirectionAxisType.HasFlag(AcceptedRotationDirectionAxisType.Z))
-			newRotation = Quaternion.FromToRotation(newRotation.GetForwardDirection(), current.GetForwardDirection()) * newRotation;
+			newRotation = Quaternion.FromToRotation(newRotation.ForwardDirection(), current.ForwardDirection()) * newRotation;
 
 		return Quaternion.RotateTowards(current, newRotation, powerDelta);
 	}
 
-	public static Quaternion RotateToDirection(this Quaternion current, Vector3 normalizedDirection, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
-		=> current.RotateToDirection(normalizedDirection, Vector3.up, acceptedRotationDirectionAxisType, powerDelta);
+	public static Quaternion RotateTowardsDirection(this Quaternion current, Vector3 normalizedDirection, AcceptedRotationDirectionAxisType acceptedRotationDirectionAxisType = AcceptedRotationDirectionAxisType.All, float powerDelta = 360f)
+		=> current.RotateTowardsDirection(normalizedDirection, Vector3.up, acceptedRotationDirectionAxisType, powerDelta);
 }

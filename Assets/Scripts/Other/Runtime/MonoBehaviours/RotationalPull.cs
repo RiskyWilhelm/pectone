@@ -43,9 +43,9 @@ public sealed partial class RotationalPull : MonoBehaviour
 		if (!isUsingOriginForUp)
 		{
 			if (isUpDirectionWorldAxis)
-				upDirection = Quaternion.Euler(upDirectionWorldEuler).GetForwardDirection();
+				upDirection = Quaternion.Euler(upDirectionWorldEuler).ForwardDirection();
 			else
-				upDirection = this.transform.rotation * Quaternion.Euler(upDirectionWorldEuler).GetForwardDirection();
+				upDirection = this.transform.rotation * Quaternion.Euler(upDirectionWorldEuler).ForwardDirection();
 		}
 
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)

@@ -248,15 +248,15 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 			// Equalize up rotation to surface
 			var surfaceAlignedRotation = relativeAlignedRotation.EqualizeUpRotationWithDirection(CurrentIsGroundedHit.normal);
-			var surfaceAlignedForward = surfaceAlignedRotation.GetForwardDirection();
+			var surfaceAlignedForward = surfaceAlignedRotation.ForwardDirection();
 
 			movementController.NormalizedMovingDirection = surfaceAlignedForward;
-			movementRigidbody.rotation = movementRigidbody.rotation.RotateToDirection(movementController.NormalizedMovingDirection, movementRigidbody.rotation.GetUpDirection(), (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
+			movementRigidbody.rotation = movementRigidbody.rotation.RotateTowardsDirection(movementController.NormalizedMovingDirection, movementRigidbody.rotation.UpDirection(), (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
 		}
 		else
 		{
 			movementController.SetMovingDirectionRelativeToTransform(relativeMovementTransform, inputForward);
-			movementRigidbody.rotation = movementRigidbody.rotation.RotateToDirection(movementController.NormalizedMovingDirection, relativeMovementTransform.up, (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
+			movementRigidbody.rotation = movementRigidbody.rotation.RotateTowardsDirection(movementController.NormalizedMovingDirection, relativeMovementTransform.up, (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
 		}
 	}
 }

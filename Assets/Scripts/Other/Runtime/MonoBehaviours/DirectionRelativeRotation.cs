@@ -55,7 +55,7 @@ public sealed partial class DirectionRelativeRotation : MonoBehaviour
 		if (currentDirection == Vector3.zero)
 			return;
 
-		selfRigidbody.rotation = selfRigidbody.rotation.RotateToDirection(currentDirection, controlledAxisTypes);
+		selfRigidbody.rotation = selfRigidbody.rotation.RotateTowardsDirection(currentDirection, controlledAxisTypes);
 		lastPosition = relativeTo.position;
 	}
 }

@@ -3,14 +3,19 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 [DisallowMultipleComponent]
-public partial class SavedInstantiation : MonoBehaviourSaveDataControllerBase<InstantiationData>
+public sealed partial class SavedInstantiation : MonoBehaviourSaveDataControllerBase<InstantiationData>
 {
 	[Header("SavedInstantiation Data")]
 	#region SavedInstantiation Data
 
-	protected SavedInstantiation _parentHandler;
+	[Tooltip("Set to true if you want only initialization.\n" +
+		"true: Prevents itself from getting attached to others and loads last instances via Awake() method.\n" +
+		"false: An instance that would be lost if it had no handler")]
+	public bool isRootData;
 
-	protected AsyncOperationHandle<GameObject> _addressableHandle;
+	private SavedInstantiation _parentHandler;
+
+	private AsyncOperationHandle<GameObject> _addressableHandle;
 
 	public SavedInstantiation ParentHandler
 		=> _parentHandler;
@@ -21,55 +26,48 @@ public partial class SavedInstantiation : MonoBehaviourSaveDataControllerBase<In
 
 	#endregion
 
-	#region SavedInstantiation Other
-
-	protected virtual bool IsAbleToGetAttached
-		=> true;
-
-
-	#endregion
-
 
 	// Initialize
 	protected override void Awake()
-	{ }
+	{
+		if (isRootData)
+			LoadFromGameData();
+	}
 
 	protected override void LoadFromGameData()
 	{
 		if (_isLoadedData)
 			return;
 
+		base.LoadFromGameData();
 		InstantiateLastChildren();
-		_isLoadedData = true;
-		onLoadedLastData?.Invoke(_data);
 	}
 
-	protected void InstantiateLastChildren()
+	private void InstantiateLastChildren()
 	{
-		foreach (var iteratedChildData in _data.childInstantiationDatasDict)
+		foreach (var iteratedChildGuid in _data.childInstantiationDataRefsSet)
 		{
-			var childGuid = iteratedChildData.Key;
-			var childData = iteratedChildData.Value;
+			var childData = SaveDataFileControllerSingleton.JData[iteratedChildGuid].ToObject<InstantiationData>();
+			var handle = Addressables.InstantiateAsync(childData.instantiationAssetReference, childData.instantiationParams.worldPosition, childData.instantiationParams.worldRotation, trackHandle: true);
 
-			var handle = Addressables.InstantiateAsync(childData.instantiationAssetReference, childData.instantiationParams.worldPosition, childData.instantiationParams.worldRotation, this.transform, true);
 			handle.Completed +=
-				(handle) => InitializeInstantiated(handle, childData, childGuid);
+				(handle) => InitializeInstantiated(handle, childData, new GuidSerializable(iteratedChildGuid));
 		}
 	}
 
 	private void InitializeInstantiated(AsyncOperationHandle<GameObject> handle, InstantiationData data, GuidSerializable gameDataGuid)
 	{
 		var isSucceeded = (handle.Status == AsyncOperationStatus.Succeeded);
-		var isInstantiatedCorrect = handle.Result.TryGetComponent<SavedInstantiation>(out SavedInstantiation instantiated);
+		var isInstantiatedSavedInstantiation = handle.Result.TryGetComponent<SavedInstantiation>(out SavedInstantiation instantiated);
 
-		if (!isSucceeded || !isInstantiatedCorrect)
+		if (!isSucceeded || !isInstantiatedSavedInstantiation)
 		{
-			Debug.LogErrorFormat("AssetReference not contains {0} or somehow handle is not succeeded", nameof(SavedInstantiation));
+			Debug.LogErrorFormat("AssetReference root does not contains {0} or somehow handle is not succeeded", nameof(SavedInstantiation));
 			handle.Release();
 			return;
 		}
 
-		instantiated._gameDataGuid = gameDataGuid;
+		instantiated.gameDataGuid = gameDataGuid;
 		instantiated._data = data;
 		instantiated._addressableHandle = handle;
 		instantiated.AttachToHandler(this);
@@ -80,42 +78,28 @@ public partial class SavedInstantiation : MonoBehaviourSaveDataControllerBase<In
 	// Update
 	public void AttachToHandler(SavedInstantiation newParentHandler)
 	{
-		if (!IsAbleToGetAttached)
-		{
-			Debug.LogWarningFormat("You cannot attach {0} to any handler", this.GetType());
-			return;
-		}
+		if (isRootData)
+			throw new ($"You cannot attach data '{this.gameDataGuid}' to any handler");
 
-		RemoveFromGameData();
-		_parentHandler = newParentHandler;
+		if (_parentHandler)
+			_parentHandler.Data.childInstantiationDataRefsSet.Remove(gameDataGuid.ToString());
 
-		// WARNING: TryAdd() giving error due to foreach loop when instantiating last children
 		if (newParentHandler)
 		{
-			UpdateGameData();
+			newParentHandler.Data.childInstantiationDataRefsSet.Add(gameDataGuid.ToString());
 			this.transform.SetParent(newParentHandler.transform, true);
 		}
 		else
 			this.transform.SetParent(null);
-	}
 
-	public override void UpdateGameData()
-	{
-		if (_parentHandler)
-			_parentHandler._data.childInstantiationDatasDict[_gameDataGuid] = _data;
-	}
-
-	public override void RemoveFromGameData()
-	{
-		if (_parentHandler)
-			_parentHandler._data.childInstantiationDatasDict.Remove(_gameDataGuid);
+		_parentHandler = newParentHandler;
 	}
 }
 
 
 #if UNITY_EDITOR
 
-public partial class SavedInstantiation
+public sealed partial class SavedInstantiation
 { }
 
 

@@ -15,12 +15,12 @@ public sealed partial class FloatingOriginCineBrain : MonoBehaviour
 	// Initialize
 	private void OnEnable()
 	{
-		FloatingOriginSingleton.Instance.onAfterOriginShifted.AddListener(OnAfterOriginShifted);
+		FloatingOriginSingleton.Instance.onAfterOriginShiftedFixed.AddListener(OnAfterOriginShiftedFixed);
 	}
 
 
 	// Update
-	private void OnAfterOriginShifted(Vector3 shiftPosition)
+	private void OnAfterOriginShiftedFixed(Vector3 shiftPosition)
 	{
 		CinemachineVirtualCameraBase activeCamera = (CinemachineVirtualCameraBase)selfCineBrain.ActiveVirtualCamera;
 		activeCamera.OnTargetObjectWarped(activeCamera.LookAt ?? activeCamera.transform, -shiftPosition);
@@ -30,7 +30,7 @@ public sealed partial class FloatingOriginCineBrain : MonoBehaviour
 	// Dispose
 	private void OnDisable()
 	{
-		FloatingOriginSingleton.Instance.onAfterOriginShifted.RemoveListener(OnAfterOriginShifted);
+		FloatingOriginSingleton.Instance.onAfterOriginShiftedFixed.RemoveListener(OnAfterOriginShiftedFixed);
 	}
 }
 

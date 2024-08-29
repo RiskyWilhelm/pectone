@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed partial class DeadPlanetSeed : MonoBehaviour, IDataRequester<DeadPlanetSeedData>
+public sealed partial class DeadPlanetSeed : MonoBehaviour, ISaveDataRequester<DeadPlanetSeedData>
 {
 	[Header("DeadPlanetSeed Movement")]
 	#region DeadPlanetSeed Movement
@@ -35,7 +35,7 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour, IDataRequester<DeadP
 	#region DeadPlanetSeed Data
 
 	[SerializeField]
-	private SavedDeadPlanetSeed selfSave;
+	private SavedInstantiation selfSave;
 
 
 	#endregion
@@ -61,10 +61,11 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour, IDataRequester<DeadP
 		selfRigidbody.isKinematic = true;
 		isPlanted = true;
 
-		if (!selfSave || !selfSave.IsLoadedData || selfSave.ParentHandler)
+		if (!selfSave || selfSave.ParentHandler)
 			return;
 
 		selfSave.AttachToHandler(saveRoot);
+		SaveDataFileControllerSingleton.Instance.SaveToFile();
 	}
 
 	public void OnGroundCollisionEnter(Collision other)
@@ -75,11 +76,12 @@ public sealed partial class DeadPlanetSeed : MonoBehaviour, IDataRequester<DeadP
 
 	public void OverrideCurrentData()
 	{
-		if (!selfSave || !selfSave.IsLoadedData)
+		if (!selfSave)
 			return;
 
 		selfSave.Data.instantiationParams = new(this.transform.position, this.transform.rotation);
-		selfSave.InnerData.currentGrowRadius = 5f;
+
+		//selfSave.InnerData.currentGrowRadius = 5f;
 	}
 
 	// WARNING: Support implementation for custom Events

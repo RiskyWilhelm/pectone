@@ -1,47 +1,31 @@
+using Newtonsoft.Json.Linq;
 using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-public abstract partial class MonoBehaviourSaveDataControllerBase<ControlledDataType> : MonoBehaviour
-	where ControlledDataType : SaveDataBase, new()
+public abstract partial class MonoBehaviourSaveDataControllerBase : MonoBehaviour
 {
-	[Header("SaveDataController Data")]
-	#region SaveDataController Data
+	[Header("MonoBehaviourSaveDataControllerBase Data")]
+	#region MonoBehaviourSaveDataControllerBase Data
 
 	[SerializeField]
-	protected GuidSerializable _gameDataGuid = GuidSerializable.NewGuid();
-
-	[SerializeField]
-	protected ControlledDataType _data = new();
+	protected GuidSerializable gameDataGuid = GuidSerializable.NewGuid();
 
 	protected bool _isLoadedData;
 
-	public GuidSerializable GameDataGuid
-		=> _gameDataGuid;
-
-	public ControlledDataType Data
-	{
-		get => _data;
-		set
-		{
-			_data = value;
-			UpdateGameData();
-		}
-	}
+	public abstract SaveDataBase RawData
+	{ get; protected set; }
 
 	public bool IsLoadedData
-	{
-		get => _isLoadedData;
-		private set => _isLoadedData = value;
-	}
+		=> _isLoadedData;
 
 
 	#endregion
 
-	[Header("SaveDataController Events")]
-	#region SaveDataController Events
+	[Header("MonoBehaviourSaveDataControllerBase Events")]
+	#region MonoBehaviourSaveDataControllerBase Events
 
-	public UnityEvent<ControlledDataType> onLoadedLastData = new();
+	public UnityEvent<SaveDataBase> onLoadedData = new();
 
 
 	#endregion
@@ -58,50 +42,96 @@ public abstract partial class MonoBehaviourSaveDataControllerBase<ControlledData
 		if (_isLoadedData)
 			return;
 
-		_isLoadedData = true;
-		var isFoundLastSave = GameDataControllerSingleton.Data.globalDatasDict.TryGetValue(_gameDataGuid, out SaveDataBase found);
+		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid.ToString(), out JToken found);
 		if (isFoundLastSave)
 		{
-			_data = (found as ControlledDataType);
-			onLoadedLastData?.Invoke(_data);
+			CheckJsonDataVersion();
+			RawData = found.ToObject<SaveDataBase>();
 		}
+		else
+			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid.ToString(), RawData);
 
-		UpdateGameData();
+		_isLoadedData = true;
+		onLoadedData?.Invoke(RawData);
 	}
 
 
 	// Update
-	public virtual void UpdateGameData()
+	protected void CheckJsonDataVersion()
 	{
-		GameDataControllerSingleton.Data.globalDatasDict[_gameDataGuid] = _data;
+		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid.ToString(), out JToken found);
+		if (!isFoundLastSave)
+			return;
+
+		var gameVersion = GameControllerPersistentSingleton.AppVersion;
+		var dataVersion = found["@version"].ToObject<Version>();
+
+        if (dataVersion == VersionUtils.empty)
+			found["@version"] = Application.version;
+        else if (gameVersion > dataVersion)
+			OnOldJsonDataVersionDetected(dataVersion);
+		else if (gameVersion < dataVersion)
+			OnNewJsonDataVersionDetected(dataVersion);
 	}
 
-	public virtual void RemoveFromGameData()
+	protected virtual void OnOldJsonDataVersionDetected(Version dataVersion)
 	{
-		GameDataControllerSingleton.Data.globalDatasDict.Remove(_gameDataGuid);
+		Debug.LogWarning("A data that belongs to old version detected. Please consider overriding the OnOldJsonDataVersionDetected() and OnNewJsonDataVersionDetected() methods");
 	}
 
-	public DataType GetDataAs<DataType>(bool updateDataType = true)
-		where DataType : ControlledDataType, new()
+	protected virtual void OnNewJsonDataVersionDetected(Version dataVersion)
 	{
-		if (_data is DataType convertedData)
-			return convertedData;
+		Debug.LogWarning("A data that belongs to old version detected. Please consider overriding the OnOldJsonDataVersionDetected() and OnNewJsonDataVersionDetected() methods");
+	}
 
-		if (updateDataType)
+	public void RemoveFromGameData()
+	{
+		SaveDataFileControllerSingleton.JData.Remove(gameDataGuid.ToString());
+		SaveDataFileControllerSingleton.UnRegisterDataUpdate(gameDataGuid.ToString());
+	}
+}
+
+public abstract partial class MonoBehaviourSaveDataControllerBase<ControlledDataType> : MonoBehaviourSaveDataControllerBase
+	where ControlledDataType : SaveDataBase, new()
+{
+	[Header("MonoBehaviourSaveDataControllerBase<ControlledDataType> Data")]
+	#region MonoBehaviourSaveDataControllerBase<ControlledDataType> Data
+
+	[SerializeField]
+	[Tooltip("You can set initial data here. These will be discarded after first save.\n" +
+		"REMINDER: If you change these, you should consider game updates by overriding OnOldJsonDataVersionDetected() && OnNewJsonDataVersionDetected")]
+	protected ControlledDataType _data = new();
+
+	public override SaveDataBase RawData
+	{
+		get => _data;
+		protected set
 		{
-			convertedData = new DataType();
-			convertedData.Copy(_data);
-			return convertedData;
+			if (!value.GetType().IsAssignableFrom(typeof(ControlledDataType)))
+				throw new ArgumentException($"New value should be same as type {typeof(ControlledDataType).Name}, or derive from type {typeof(ControlledDataType).Name}");
+			
+			_data = (value as ControlledDataType);
 		}
-
-		throw new ArgumentException($"data type '{_data.GetType()}' is not equal with '{typeof(DataType)}'");
 	}
+
+	/// <summary> Whenever gets accessed, assumes its inner data are got overridden </summary>
+	public ControlledDataType Data
+	{
+		get
+		{
+			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid.ToString(), _data);
+			return _data;
+		}
+	}
+
+
+	#endregion
 }
 
 
 #if UNITY_EDITOR
 
-public abstract partial class MonoBehaviourSaveDataControllerBase<ControlledDataType>
+public abstract partial class MonoBehaviourSaveDataControllerBase
 { }
 
 

@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEditor;
+using Newtonsoft.Json.Converters;
 
 public static partial class NewtonsoftJSONInitializer
 {
@@ -16,9 +17,10 @@ public static partial class NewtonsoftJSONInitializer
 		JsonConvert.DefaultSettings = () => new JsonSerializerSettings
 		{
 			Formatting = Formatting.Indented,
-			TypeNameHandling = TypeNameHandling.Auto,
+			TypeNameHandling = TypeNameHandling.All,
 			Converters = new JsonConverter[]
 			{
+				new VersionConverter(),
 				new NewtonsoftColorConverter(),
 				new NewtonsoftVector2Converter(),
 				new NewtonsoftVector3Converter(),

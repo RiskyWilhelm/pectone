@@ -1,11 +1,11 @@
 /// <summary> Does nothing in special. Just a contract for the methods </summary>
-public interface IDataRequester
+public interface ISaveDataRequester
 {
 	public void OverrideCurrentData();
 }
 
-/// <inheritdoc cref="IDataRequester"/>
-public interface IDataRequester<DataType> : IDataRequester
+/// <inheritdoc cref="ISaveDataRequester"/>
+public interface ISaveDataRequester<DataType> : ISaveDataRequester
 	where DataType : SaveDataBase
 {
 	// WARNING: Support implementation for custom events

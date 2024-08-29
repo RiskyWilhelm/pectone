@@ -21,10 +21,12 @@ public struct GuidSerializable : IEquatable<GuidSerializable>
 	private ulong guidHigh;
 
 	/// <summary> Represents <see cref="Guid.Empty"/>, a GUID where the value is all zero </summary>
-	public static GuidSerializable Empty => Guid.Empty;
+	public static GuidSerializable Empty
+		=> Guid.Empty;
 
 	/// <summary> Reconstructs a <see cref="System.Guid"/> from two <see cref="ulong"/> values representing the low and high bytes </summary>
-	public readonly Guid Guid => GuidUtils.Compose(guidLow, guidHigh);
+	public Guid Guid
+		=> GuidUtils.Compose(guidLow, guidHigh);
 
 
 	/// <summary> Constructs a <see cref="GuidSerializable"/> from two 64-bit(8 byte) <see cref="ulong"/> values </summary>
@@ -65,10 +67,10 @@ public struct GuidSerializable : IEquatable<GuidSerializable>
 	public static GuidSerializable NewGuid()
 		=> new GuidSerializable(Guid.NewGuid());
 
-	public override readonly int GetHashCode()
+	public override int GetHashCode()
 		=> HashCode.Combine(guidLow, guidHigh);
 
-	public override readonly bool Equals(object obj)
+	public override bool Equals(object obj)
 	{
 		if (obj is GuidSerializable serializableGuid)
 			Equals(serializableGuid);
@@ -77,21 +79,21 @@ public struct GuidSerializable : IEquatable<GuidSerializable>
 	}
 
 	/// <summary> Generates a string representation of the <see cref="System.Guid"/>. Same as <see cref="Guid.ToString()"/> </summary>
-	public override readonly string ToString()
+	public override string ToString()
 		=> Guid.ToString();
 
 	/// <summary> Generates a string representation of the <see cref="System.Guid"/>. Same as <see cref="Guid.ToString(string)"/> </summary>
 	/// <param name="format"> A single format specifier that indicates how to format the value of the <see cref="Guid"/> </param>
-	public readonly string ToString(string format)
+	public string ToString(string format)
 		=> Guid.ToString(format);
 
 	/// /// <summary> Generates a string representation of the <see cref="System.Guid"/>. Same as <see cref="Guid.ToString(string, IFormatProvider)"/> </summary>
 	/// <param name="format"> A single format specifier that indicates how to format the value of the <see cref="System.Guid"/> </param>
 	/// <param name="provider"> An object that supplies culture-specific formatting information </param>
-	public readonly string ToString(string format, IFormatProvider provider)
+	public string ToString(string format, IFormatProvider provider)
 		=> Guid.ToString(format, provider);
 
-	public readonly bool Equals(GuidSerializable other)
+	public bool Equals(GuidSerializable other)
 	{
 		return guidLow == other.guidLow &&
 			guidHigh == other.guidHigh;

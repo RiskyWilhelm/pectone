@@ -2,14 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-[RequireComponent(typeof(Rigidbody))]
 public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase<FloatingOriginSingleton>
 {
 	[Header("FloatingOriginSingleton Floating Origin")]
 	#region FloatingOriginSingleton Floating Origin
 
 	[SerializeField]
-	private Rigidbody selfRigidbody;
+	private Rigidbody worldOriginRigidbody;
 
 	[SerializeField]
 	private Rigidbody alignRigidbody;
@@ -34,7 +33,7 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 
 	public UnityEvent onBeforeOriginShifted = new();
 
-	public UnityEvent<Vector3> onAfterOriginShifted = new();
+	public UnityEvent<Vector3> onAfterOriginShiftedFixed = new();
 
 
 	#endregion
@@ -44,6 +43,21 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 	private void Update()
 	{
 		TryAutoShift();
+	}
+
+	private void FixedUpdate()
+	{
+		if (syncedShiftPosition != Vector3.zero)
+		{
+			if (isRequestedSyncedTransformShift)
+			{
+				ShiftTransforms(syncedShiftPosition);
+				isRequestedSyncedTransformShift = false;
+			}
+
+			onAfterOriginShiftedFixed?.Invoke(syncedShiftPosition);
+			syncedShiftPosition = Vector3.zero;
+		}
 	}
 
 	public void Shift()
@@ -59,12 +73,12 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 
 	private void ShiftRigidbodies(Vector3 shiftPosition)
 	{
-		selfRigidbody.position -= shiftPosition;
+		worldOriginRigidbody.position -= shiftPosition;
 
 		rigidbodiesSet.RemoveWhere((x) => !x);
 		foreach (var iteratedRigidbody in rigidbodiesSet)
 		{
-			if (!iteratedRigidbody.IsSleeping() && !iteratedRigidbody.IsMovingApproximately())
+			if (!iteratedRigidbody.IsMovingApproximately())
 				iteratedRigidbody.Sleep();
 
 			iteratedRigidbody.position -= shiftPosition;
@@ -78,25 +92,10 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 			iteratedTransform.position -= shiftPosition;
 	}
 
+	/// <summary> Synces with the Rigidbody position changes </summary>
 	private void ShiftTransformsInSync()
 	{
 		isRequestedSyncedTransformShift = true;
-	}
-
-	private void FixedUpdate()
-	{
-		if (syncedShiftPosition != Vector3.zero)
-		{
-			// Shifting here to sync with Rigidbody positions
-			if (isRequestedSyncedTransformShift)
-			{
-				ShiftTransforms(syncedShiftPosition);
-				isRequestedSyncedTransformShift = false;
-			}
-
-			onAfterOriginShifted?.Invoke(syncedShiftPosition);
-			syncedShiftPosition = Vector3.zero;
-		}
 	}
 
 	private void TryAutoShift()

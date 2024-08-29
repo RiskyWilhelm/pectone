@@ -41,6 +41,7 @@ public static class RigidbodyExtensions
 		return IsMovingApproximately(rigidbody, allowedDifference) || IsRotatingApproximately(rigidbody, allowedDifference);
 	}
 
+	/// <summary> Use when temporary limitation wanted </summary>
 	/// <param name="maxVelocity"> If you dont want velocity limit on specific axises, set them to zero </param>
 	public static void LimitLinearVelocity(this Rigidbody rigidbody, Vector3 maxVelocity)
 	{

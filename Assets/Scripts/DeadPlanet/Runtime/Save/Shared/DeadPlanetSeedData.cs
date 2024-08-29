@@ -14,6 +14,7 @@ public sealed class DeadPlanetSeedData : SaveDataBase, ICopyable<DeadPlanetSeedD
 	{ }
 
 
+
 	// Update
 	public override void Copy(in object other)
 	{

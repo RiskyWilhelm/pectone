@@ -15,8 +15,8 @@ public class InstantiationData : SaveDataBase, ICopyable<InstantiationData>
 	[JsonProperty]
 	public (Vector3 worldPosition, Quaternion worldRotation) instantiationParams;
 
-	[JsonProperty(ItemReferenceLoopHandling = ReferenceLoopHandling.Ignore)]
-	public Dictionary<GuidSerializable, InstantiationData> childInstantiationDatasDict = new();
+	[JsonProperty]
+	public HashSet<string> childInstantiationDataRefsSet = new();
 
 
 	// Initialize
@@ -33,10 +33,8 @@ public class InstantiationData : SaveDataBase, ICopyable<InstantiationData>
 
 	public void Copy(in InstantiationData other)
 	{
-		if (other.instantiationAssetReference != null)
-			this.instantiationAssetReference = new (other.instantiationAssetReference.AssetGUID);
-
+		this.instantiationAssetReference = (other.instantiationAssetReference != null) ? new (other.instantiationAssetReference.AssetGUID) : null;
 		this.instantiationParams = other.instantiationParams;
-		this.childInstantiationDatasDict = new(other.childInstantiationDatasDict);
+		this.childInstantiationDataRefsSet = new(other.childInstantiationDataRefsSet);
 	}
 }

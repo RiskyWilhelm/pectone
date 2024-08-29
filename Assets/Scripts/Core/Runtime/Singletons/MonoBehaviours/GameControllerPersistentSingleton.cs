@@ -22,16 +22,18 @@ public sealed partial class GameControllerPersistentSingleton : MonoBehaviourSin
 
 	#region GameControllerPersistentSingleton States
 
-	[NonSerialized]
 	private static float lastTimeScaleBeforePause = 1f;
 
-	[field: NonSerialized]
-	public static AppVisibilityStateType VisibilityState
-		{ get; private set; }
+	private static Version _appVersion;
 
-	[field: NonSerialized]
+	public static Version AppVersion
+		=> _appVersion ??= new (Application.version);
+
+	public static AppVisibilityStateType VisibilityState
+	{ get; private set; }
+
 	public static bool IsQuitting
-		{ get; private set; }
+	{ get; private set; }
 
 	public static bool IsPaused
 		=> (Time.timeScale == 0);

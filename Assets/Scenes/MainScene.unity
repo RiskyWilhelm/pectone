@@ -2183,11 +2183,50 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 8195716281122774410, guid: 73a746da4cd23ea48b3640604f36b6c4, type: 3}
+      propertyPath: selfSave
+      value: 
+      objectReference: {fileID: 1219886148}
+    m_RemovedComponents:
+    - {fileID: 1347931818640055041, guid: 73a746da4cd23ea48b3640604f36b6c4, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 120280778503431459, guid: 73a746da4cd23ea48b3640604f36b6c4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1219886148}
   m_SourcePrefab: {fileID: 100100000, guid: 73a746da4cd23ea48b3640604f36b6c4, type: 3}
+--- !u!1 &1219886147 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 120280778503431459, guid: 73a746da4cd23ea48b3640604f36b6c4, type: 3}
+  m_PrefabInstance: {fileID: 1219886146}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1219886148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1219886147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0426cff7dda134b438d572548b3c440c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameDataGuid:
+    guidLow: 5186680955156074739
+    guidHigh: 16826962837436342440
+  onLoadedData:
+    m_PersistentCalls:
+      m_Calls: []
+  _data:
+    instantiationAssetReference:
+      m_AssetGUID: 73a746da4cd23ea48b3640604f36b6c4
+      m_SubObjectName: 
+      m_SubObjectGUID: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  isRootData: 0
 --- !u!1 &1278328317
 GameObject:
   m_ObjectHideFlags: 0
@@ -2652,12 +2691,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 1463012029}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ab6f0ebc3227ff42821511fcbd059e9, type: 3}
+  m_Script: {fileID: 11500000, guid: 0426cff7dda134b438d572548b3c440c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gameDataGuid:
-    guidLow: 4779936445650229947
-    guidHigh: 5914972300881262271
+  gameDataGuid:
+    guidLow: 5730722770379632398
+    guidHigh: 10686181954007418518
+  onLoadedData:
+    m_PersistentCalls:
+      m_Calls: []
   _data:
     instantiationAssetReference:
       m_AssetGUID: 
@@ -2665,9 +2707,7 @@ MonoBehaviour:
       m_SubObjectGUID: 
       m_SubObjectType: 
       m_EditorAssetChanged: 0
-  onLoadedLastData:
-    m_PersistentCalls:
-      m_Calls: []
+  isRootData: 1
 --- !u!1 &1495793613
 GameObject:
   m_ObjectHideFlags: 0
@@ -2935,7 +2975,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1595918572}
-  - component: {fileID: 1595918571}
   - component: {fileID: 1595918570}
   m_Layer: 0
   m_Name: FloatingOriginSingleton
@@ -2956,43 +2995,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d74afabfc5572ab4491002c6387c829a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selfRigidbody: {fileID: 1415329386}
+  worldOriginRigidbody: {fileID: 1415329386}
   alignRigidbody: {fileID: 677029584}
   doShiftingEveryAllowedDistance: 1
   allowedDistance: 3000
   onBeforeOriginShifted:
     m_PersistentCalls:
       m_Calls: []
-  onAfterOriginShifted:
+  onAfterOriginShiftedFixed:
     m_PersistentCalls:
       m_Calls: []
---- !u!54 &1595918571
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1595918569}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 0
-  m_ImplicitTensor: 0
-  m_UseGravity: 0
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 112
-  m_CollisionDetection: 0
 --- !u!4 &1595918572
 Transform:
   m_ObjectHideFlags: 0

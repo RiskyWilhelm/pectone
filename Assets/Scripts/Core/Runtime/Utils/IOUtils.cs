@@ -1,47 +1,39 @@
 using System;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json;
 using UnityEngine;
 
 // Save&Load Copyright belongs to: https://github.com/shapedbyrainstudios/save-load-system - I upgraded the code
 public static class IOUtils
 {
-	public const string encryptionWord = "Encrypted";
+	public const string encryptionWord = "XOR";
 	public const string backupExtension = ".backup";
 
 
-	/// <summary> Replaces '/' with <see cref="Path.DirectorySeparatorChar"/> </summary>
+	/// <summary> Replaces '/' and '\\' with <see cref="Path.DirectorySeparatorChar"/> </summary>
 	public static string FixPathByCorrectDirectorySeperator(string path)
 	{
-		return path.Replace('/', Path.DirectorySeparatorChar);
+		path = path.Replace('/', Path.DirectorySeparatorChar);
+        return path.Replace('\\', Path.DirectorySeparatorChar);
 	}
 
-	/// <inheritdoc cref="FixPathByCorrectDirectorySeperator(string)"/>
-	public static string FixPathByCorrectDirectorySeperator(ref string path)
-		=> path = FixPathByCorrectDirectorySeperator(path);
-
-	/// <summary> Uses Newtonsoft JSON to deserialize </summary>
 	/// <remarks> Use '/' in <paramref name="fullPathWithExtension"/> for platform relative dir seperator </remarks>
-	public static void Load<LoadObjectType>(string fullPathWithExtension, out LoadObjectType loadedData, bool useDecryption = false, bool allowRestoreFromBackup = true)
+	public static void Load(string fullPathWithExtension, out string loadedData, bool useDecryption = false, bool allowRestoreFromBackup = true)
 	{
+		fullPathWithExtension = FixPathByCorrectDirectorySeperator(fullPathWithExtension);
 		loadedData = default;
-		FixPathByCorrectDirectorySeperator(ref fullPathWithExtension);
 
 		// load the serialized data from the file
 		try
 		{
-			string dataToLoad = "";
 			using (var stream = new FileStream(fullPathWithExtension, FileMode.Open))
 			{
 				using var reader = new StreamReader(stream);
-				dataToLoad = reader.ReadToEnd();
+				loadedData = reader.ReadToEnd();
 			}
 
 			if (useDecryption)
-				dataToLoad = EncryptDecrypt(dataToLoad);
-
-			loadedData = JsonConvert.DeserializeObject<LoadObjectType>(dataToLoad);
+				loadedData = EncryptDecrypt(loadedData);
 		}
 		// Try to load backup if any exists
 		catch (Exception e)
@@ -53,7 +45,7 @@ public static class IOUtils
 				SaveBackupAsMainFile(fullPathWithExtension);
 
 				// verify the newly saved file can be loaded successfully
-				Load<LoadObjectType>(fullPathWithExtension, out loadedData, useDecryption, false);
+				Load(fullPathWithExtension, out loadedData, useDecryption, false);
 				return;
 			}
 
@@ -62,12 +54,10 @@ public static class IOUtils
 		}
 	}
 
-	/// <summary> Uses Newtonsoft JSON to deserialize </summary>
 	/// <remarks> Use '/' in <paramref name="fullPathWithExtension"/> for platform relative dir seperator </remarks>
-	public static void Save<SaveObjectType>(SaveObjectType data, string fullPathWithExtension, bool useEncryption = false, bool createBackup = true)
+	public static void Save(string dataToStore, string fullPathWithExtension, bool useEncryption = false, bool createBackup = true)
 	{
-		string dataToStore = JsonConvert.SerializeObject(data);
-		FixPathByCorrectDirectorySeperator(ref fullPathWithExtension);
+		fullPathWithExtension = FixPathByCorrectDirectorySeperator(fullPathWithExtension);
 		Directory.CreateDirectory(Path.GetDirectoryName(fullPathWithExtension));
 
 		if (useEncryption)
@@ -81,7 +71,7 @@ public static class IOUtils
 		}
 
 		// verify the newly saved file can be loaded successfully
-		Load<SaveObjectType>(fullPathWithExtension, out _, useEncryption, false);
+		Load(fullPathWithExtension, out _, useEncryption, false);
 			
 		if (createBackup)
 			File.Copy(fullPathWithExtension, (fullPathWithExtension + backupExtension), true);
@@ -114,8 +104,7 @@ public static class IOUtils
 
 	public static void SaveBackupAsMainFile(string fullPathWithExtension)
 	{
-		string backupFilePath = (fullPathWithExtension + backupExtension);
-		FixPathByCorrectDirectorySeperator(ref backupFilePath);
+		string backupFilePath = FixPathByCorrectDirectorySeperator(fullPathWithExtension + backupExtension);
 
 		File.Copy(backupFilePath, fullPathWithExtension, true);
 		Debug.LogWarning($"Backup saved as main file to path {fullPathWithExtension}");

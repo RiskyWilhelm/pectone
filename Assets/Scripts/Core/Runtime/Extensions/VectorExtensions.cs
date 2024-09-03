@@ -18,38 +18,6 @@ public static class VectorExtensions
 		Left,
 		TopLeft,
 		Middle,
-
-		// 3D
-
-		/// Top side
-		ForwardTop,
-		ForwardTopRight,
-		// TopRight
-		BackTopRight,
-		BackTop,
-		BackTopLeft,
-		// TopLeft
-		ForwardTopLeft,
-
-		/// Middle side
-		Forward,
-		ForwardRight,
-		// Right
-		BackRight,
-		Back,
-		BackLeft,
-		// Left
-		ForwardLeft,
-
-		/// Bottom side
-		ForwardBottom,
-		ForwardBottomRight,
-		// BottomRight
-		BackBottomRight,
-		BackBottom,
-		BackBottomLeft,
-		// BottomLeft
-		ForwardBottomLeft
 	}
 
 	public static Vector2 Abs(this Vector2 value)

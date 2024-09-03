@@ -1,46 +1,23 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Pool;
 
 [DisallowMultipleComponent]
 public sealed partial class Carryier : MonoBehaviour
 {
-	public enum PhysicsInteraction
-	{
-		OnCarryTriggerEnter,
-		OnCarryTriggerExit
-	}
-
 	[Header("Carryier Carry")]
 	#region Carryier Carry
 
-	public int priority;
+	[SerializeField]
+	private CarryierType _type;
 
-	public uint maxCarryableCount = 1;
+	[SerializeField]
+	private bool _isAbleToCarry;
 
-	private readonly HashSet<Carryable> _carriedSet = new();
+	public CarryierType Type
+		=> _type;
 
-	private ReadOnlySet<Carryable> _carriedRSet;
-
-	[field: SerializeField]
-	public CarryierType CType
-	{ get; private set; }
-
-	private HashSet<Carryable> CarriedSet
-	{
-		get
-		{
-			_carriedSet.RemoveWhere((x) => !x);
-			return _carriedSet;
-		}
-	}
-
-	public ReadOnlySet<Carryable> CarriedRSet
-		=> _carriedRSet ??= new(_carriedSet);
-
-	public bool IsMaxCarryableCountExceeded
-		=> (CarriedSet.Count >= maxCarryableCount);
+	public bool IsAbleToCarry
+		=> _isAbleToCarry;
 
 
 	#endregion
@@ -48,78 +25,60 @@ public sealed partial class Carryier : MonoBehaviour
 	[Header("Carryier Events")]
 	#region Carryier Events
 
-	[SerializeField]
-	internal UnityEvent<Carryable> onGrabbed = new();
+	public UnityEvent<Carryable> onCarried = new();
 
-	[SerializeField]
-	internal UnityEvent<Carryable> onUnGrabbed = new();
+	public UnityEvent<Carryable> onUnCarried = new();
 
 
 	#endregion
 
 
+	// Initialize
+	private void OnEnable()
+	{
+		Unlock();
+	}
+
+
 	// Update
-	public bool TryCarryCarryable(Carryable requester)
+	public bool TryCarry(Carryable requester)
 	{
 		if (IsAbleToCarryCarryable(requester))
 		{
-			CarriedSet.Add(requester);
-			requester.GetUnCarriedFromCurrent();
-			requester.CurrentCarryier = this;
-
-			onGrabbed?.Invoke(requester);
-			requester.onGotGrabbed?.Invoke(this);
+			requester.onGotCarried?.Invoke(this);
+			onCarried?.Invoke(requester);
 			return true;
 		}
 
 		return false;
 	}
 
-	public void UnCarryCarryable(Carryable requester)
+	public void UnCarry(Carryable requester)
 	{
-		if (CarriedSet.Remove(requester))
-		{
-			requester.CurrentCarryier = null;
-
-			onUnGrabbed?.Invoke(requester);
-			requester.onGotUnGrabbed?.Invoke(this);
-		}
-	}
-
-	public void UnCarryAll()
-	{
-		var cachedList = ListPool<Carryable>.Get();
-		cachedList.AddRange(CarriedSet);
-
-		_carriedSet.Clear();
-        for (int i = cachedList.Count - 1; i >= 0; i--)
-        {
-			var iteratedCarryable = cachedList[i];
-			iteratedCarryable.CurrentCarryier = null;
-
-			onUnGrabbed?.Invoke(iteratedCarryable);
-			iteratedCarryable.onGotUnGrabbed?.Invoke(this);
-		}
-
-		ListPool<Carryable>.Release(cachedList);
+		onUnCarried?.Invoke(requester);
+		requester.onGotUnCarried?.Invoke(this);
 	}
 
 	public bool IsAbleToCarryCarryable(Carryable requester)
 	{
-		if (!this.isActiveAndEnabled || IsMaxCarryableCountExceeded || _carriedSet.Contains(requester))
-			return false;
+		return _isAbleToCarry && requester.IsAbleToGetCarried && requester.acceptedCarryiersList.Contains(Type);
+	}
 
-		if ((requester.CurrentCarryier == this) || !requester.isActiveAndEnabled || !requester.acceptedCarryiersList.Contains(CType))
-			return false;
+	public void Lock()
+	{
+		_isAbleToCarry = false;
+	}
 
-		return requester.CurrentCarryier ? (this.priority >= requester.CurrentCarryier.priority) : true;
+	public void Unlock()
+	{
+		_isAbleToCarry = true;
 	}
 
 
 	// Dispose
 	private void OnDisable()
 	{
-		UnCarryAll();
+		Lock();
 	}
 }
 

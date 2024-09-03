@@ -107,7 +107,4 @@ public struct GuidSerializable : IEquatable<GuidSerializable>
 
 	public static implicit operator GuidSerializable(Guid guid)
 		=> new GuidSerializable(guid);
-
-	public static implicit operator Guid(GuidSerializable serializableGuid)
-		=> serializableGuid.Guid;
 }

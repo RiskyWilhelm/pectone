@@ -38,18 +38,18 @@ public sealed class GuidSerializableDrawer : PropertyDrawer
 		guidTextField.SetValueWithoutNotify(mainProperty.boxedValue.ToString());
 
 		// Register callbacks
-		guidTextField.RegisterValueChangedCallback(OnGuidTextFieldValueChanged);
+		guidTextField.RegisterValueChangedCallback(OnTextFieldValueChanged);
 		dropdownInputElement.DropdownElement.RegisterValueChangedCallback(OnDropdownFieldValueChanged);
-		dropdownInputElement.TrackPropertyValue(mainProperty, OnSerializableGuidChanged);
+		dropdownInputElement.TrackPropertyValue(mainProperty, OnMainPropertyChanged);
 
 		return visualTree;
 	}
 
 
 	// Update
-	private void UpdateValuesWithGuid(Guid newGuid)
+	private void UpdateMainPropertyWithGuid(GuidSerializable newGuid)
 	{
-		mainProperty.boxedValue = new GuidSerializable(newGuid);
+		mainProperty.boxedValue = newGuid;
 		mainProperty.serializedObject.ApplyModifiedProperties();
 	}
 
@@ -58,10 +58,11 @@ public sealed class GuidSerializableDrawer : PropertyDrawer
 		switch (guidActionList.IndexOf(evt.newValue))
 		{
 			case 0:
-			UpdateValuesWithGuid(Guid.NewGuid());
+			UpdateMainPropertyWithGuid(GuidSerializable.NewGuid());
 			break;
+
 			case 1:
-			UpdateValuesWithGuid(GuidSerializable.Empty);
+			UpdateMainPropertyWithGuid(GuidSerializable.Empty);
 			break;
 		}
 
@@ -69,7 +70,7 @@ public sealed class GuidSerializableDrawer : PropertyDrawer
 		(evt.currentTarget as DropdownField).SetValueWithoutNotify(null);
 	}
 
-	private void OnGuidTextFieldValueChanged(ChangeEvent<string> evt)
+	private void OnTextFieldValueChanged(ChangeEvent<string> evt)
 	{
 		// If the new value is not a valid guid, keep old value and throw exception
 		if (!Guid.TryParse(guidTextField.value, out _))
@@ -78,10 +79,10 @@ public sealed class GuidSerializableDrawer : PropertyDrawer
 			throw new ArgumentException("Guid is not valid. Keeping the old value");
 		}
 
-		UpdateValuesWithGuid(new Guid(guidTextField.value));
+		UpdateMainPropertyWithGuid(new GuidSerializable(guidTextField.value));
 	}
 
-	private void OnSerializableGuidChanged(SerializedProperty property)
+	private void OnMainPropertyChanged(SerializedProperty property)
 	{
 		guidTextField.SetValueWithoutNotify(property.boxedValue.ToString());
 	}

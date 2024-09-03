@@ -26,4 +26,18 @@ public static class VectorUtils
 
 	public static Vector3 DegreeToVector(float angleInDegrees, Vector3 axisToRotateAround)
 		=> Quaternion.AngleAxis(angleInDegrees, axisToRotateAround).eulerAngles;
+
+	/// <summary> Transform point local to world space </summary>
+	public static Vector3 VectorPoint(Vector3 position, Quaternion rotation, Vector3 scale, Vector3 targetPos)
+	{
+		var localToWorldMatrix = Matrix4x4.TRS(position, rotation, scale);
+		return localToWorldMatrix.MultiplyPoint3x4(targetPos);
+	}
+
+	/// <summary> Transform point world to local space </summary>
+	public static Vector3 InverseVectorPoint(Vector3 position, Quaternion rotation, Vector3 scale, Vector3 targetPos)
+	{
+		var worldToLocalMatrix = Matrix4x4.TRS(position, rotation, scale).inverse;
+		return worldToLocalMatrix.MultiplyPoint3x4(targetPos);
+	}
 }

@@ -9,7 +9,8 @@ public abstract partial class MonoBehaviourSaveDataControllerBase : MonoBehaviou
 	#region MonoBehaviourSaveDataControllerBase Data
 
 	[SerializeField]
-	protected GuidSerializable gameDataGuid = GuidSerializable.NewGuid();
+	[Guid]
+	protected string gameDataGuid = Guid.NewGuid().ToString();
 
 	protected bool _isLoadedData;
 
@@ -42,14 +43,14 @@ public abstract partial class MonoBehaviourSaveDataControllerBase : MonoBehaviou
 		if (_isLoadedData)
 			return;
 
-		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid.ToString(), out JToken found);
+		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid, out JToken found);
 		if (isFoundLastSave)
 		{
 			CheckJsonDataVersion();
 			RawData = found.ToObject<SaveDataBase>();
 		}
 		else
-			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid.ToString(), RawData);
+			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid, RawData);
 
 		_isLoadedData = true;
 		onLoadedData?.Invoke(RawData);
@@ -59,7 +60,7 @@ public abstract partial class MonoBehaviourSaveDataControllerBase : MonoBehaviou
 	// Update
 	protected void CheckJsonDataVersion()
 	{
-		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid.ToString(), out JToken found);
+		var isFoundLastSave = SaveDataFileControllerSingleton.JData.TryGetValue(gameDataGuid, out JToken found);
 		if (!isFoundLastSave)
 			return;
 
@@ -86,8 +87,8 @@ public abstract partial class MonoBehaviourSaveDataControllerBase : MonoBehaviou
 
 	public void RemoveFromGameData()
 	{
-		SaveDataFileControllerSingleton.JData.Remove(gameDataGuid.ToString());
-		SaveDataFileControllerSingleton.UnRegisterDataUpdate(gameDataGuid.ToString());
+		SaveDataFileControllerSingleton.JData.Remove(gameDataGuid);
+		SaveDataFileControllerSingleton.UnRegisterDataUpdate(gameDataGuid);
 	}
 }
 
@@ -119,7 +120,7 @@ public abstract partial class MonoBehaviourSaveDataControllerBase<ControlledData
 	{
 		get
 		{
-			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid.ToString(), _data);
+			SaveDataFileControllerSingleton.RegisterDataUpdate(gameDataGuid, _data);
 			return _data;
 		}
 	}

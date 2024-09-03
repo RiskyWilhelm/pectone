@@ -7,6 +7,9 @@ public sealed partial class Movable : MonoBehaviour
 	#region Movable Movement
 
 	[SerializeField]
+	private Rigidbody _selfRigidbody;
+
+	[SerializeField]
 	private ForceMode movementForceMode = ForceMode.Acceleration;
 
     public Vector3 movementForce;
@@ -15,9 +18,8 @@ public sealed partial class Movable : MonoBehaviour
 	[Tooltip("Optional. Set to zero if no velocity limitation wanted")]
 	public Vector3 maxMovementVelocity;
 
-	[field: SerializeField]
 	public Rigidbody SelfRigidbody
-	{ get; private set; }
+		=> _selfRigidbody;
 
 	public bool IsTryingToMove
 		=> (_movingDirection != Vector3.zero);

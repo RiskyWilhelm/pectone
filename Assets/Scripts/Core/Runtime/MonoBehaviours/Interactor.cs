@@ -7,12 +7,17 @@ public sealed partial class Interactor : MonoBehaviour
 	[Header("Interactor Interaction")]
 	#region Interactor Interaction
 
-	[field: SerializeField]
-	public InteractorType IType
-	{ get; private set; }
+	[SerializeField]
+	private InteractorType _type;
 
-	public Interactable CurrentInteractable
-	{ get; internal set; }
+	[SerializeField]
+	private bool _isAbleToInteract;
+
+	public InteractorType Type
+		=> _type;
+
+	public bool IsAbleToInteract
+		=> _isAbleToInteract;
 
 
 	#endregion
@@ -20,38 +25,52 @@ public sealed partial class Interactor : MonoBehaviour
 	[Header("Interactor Events")]
 	#region Interactor Events
 
-	[SerializeField]
-	internal UnityEvent<Interactable> onInteracted = new();
-
-	[SerializeField]
-	internal UnityEvent<Interactable> onUnInteracted = new();
+	public UnityEvent<Interactable> onInteracted = new();
 
 
 	#endregion
 
 
+	// Initialize
+	private void OnEnable()
+	{
+		Unlock();
+	}
+
+
 	// Update
 	public bool TryInteractWith(Interactable requester)
 	{
-		return requester.TryGetInteractedBy(this);
+		if (IsAbleToInteractWith(requester))
+		{
+			requester.onGotInteracted?.Invoke(this);
+			onInteracted?.Invoke(requester);
+			return true;
+		}
+
+		return false;
 	}
 
-	public void UnInteractWithCurrent()
+	public bool IsAbleToInteractWith(Interactable requester)
 	{
-		if (CurrentInteractable)
-			CurrentInteractable.UnInteractInteractor(this);
+		return _isAbleToInteract && requester.IsAbleToGetInteracted;
 	}
 
-	public bool IsAbleToGetGrabbedBy(Interactable requester)
+	public void Lock()
 	{
-		return requester.IsAbleToGetInteractedBy(this);
+		_isAbleToInteract = false;
+	}
+
+	public void Unlock()
+	{
+		_isAbleToInteract = true;
 	}
 
 
 	// Dispose
 	private void OnDisable()
 	{
-		UnInteractWithCurrent();
+		Lock();
 	}
 }
 

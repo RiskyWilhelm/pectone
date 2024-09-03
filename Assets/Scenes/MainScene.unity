@@ -1036,6 +1036,8 @@ GameObject:
   - component: {fileID: 677029586}
   - component: {fileID: 677029583}
   - component: {fileID: 677029587}
+  - component: {fileID: 677029589}
+  - component: {fileID: 677029588}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1076,10 +1078,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0736e5e5297ef84dbdc31da45511c40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _selfRigidbody: {fileID: 677029584}
   movementForceMode: 5
   movementForce: {x: 15, y: 15, z: 15}
-  maxMovementVelocity: {x: 15, y: 15, z: 15}
-  <SelfRigidbody>k__BackingField: {fileID: 677029584}
+  maxMovementVelocity: {x: 0, y: 0, z: 0}
 --- !u!54 &677029584
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1205,12 +1207,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7fb178f7d5bf09e40b56a71e9de36e6f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  size: {x: 1, y: 2, z: 1}
-  acceptedDistanceForIsGroundedCheck: 5
+  _selfRigidbody: {fileID: 677029584}
   isGroundedLayerMask:
     serializedVersion: 2
     m_Bits: 8
-  <SelfRigidbody>k__BackingField: {fileID: 677029584}
+  isGroundedCheckRadius: 0.75
+  isGroundedCheckDistance: 1
   movementController: {fileID: 677029583}
   relativeMovementTransform: {fileID: 179124182}
   equalizeUpRotationWithSurfacePower: 100
@@ -1247,6 +1249,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   desiredAmount: 144
   useScreenHZ: 1
+--- !u!114 &677029588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677029581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b18646782553c90498725501e8b11565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _type: 0
+  _isAbleToInteract: 0
+  onInteracted:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &677029589
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677029581}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe3a6bad2b07bf147994a95f9196abce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _type: 0
+  _isAbleToGetInteracted: 0
+  onGotInteracted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &750316438
 GameObject:
   m_ObjectHideFlags: 0
@@ -2213,9 +2249,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0426cff7dda134b438d572548b3c440c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDataGuid:
-    guidLow: 5186680955156074739
-    guidHigh: 16826962837436342440
+  gameDataGuid: f120a923-4409-4373-b668-476363598d3c
   onLoadedData:
     m_PersistentCalls:
       m_Calls: []
@@ -2694,9 +2728,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0426cff7dda134b438d572548b3c440c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameDataGuid:
-    guidLow: 5730722770379632398
-    guidHigh: 10686181954007418518
+  gameDataGuid: 
   onLoadedData:
     m_PersistentCalls:
       m_Calls: []

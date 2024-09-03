@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 
 [Serializable]
 [JsonObject(MemberSerialization.OptIn)]
-public class InstantiationData : SaveDataBase, ICopyable<InstantiationData>
+public sealed class InstantiationData : SaveDataBase, ICopyable<InstantiationData>
 {
 	[JsonProperty]
 	[SerializeField]

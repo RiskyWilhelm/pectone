@@ -10,12 +10,17 @@ public sealed partial class Carryable : MonoBehaviour
 
 	public List<CarryierType> acceptedCarryiersList = new();
 
-	[field: SerializeField]
-	public CarryableType CType
-	{ get; private set; }
+	[SerializeField]
+	private CarryableType _type;
 
-	public Carryier CurrentCarryier
-	{ get; internal set; }
+	[SerializeField]
+	private bool _isAbleToGetCarried;
+
+	public CarryableType Type
+		=> _type;
+
+	public bool IsAbleToGetCarried
+		=> _isAbleToGetCarried;
 
 
 	#endregion
@@ -23,38 +28,46 @@ public sealed partial class Carryable : MonoBehaviour
 	[Header("Carryable Events")]
 	#region Carryable Events
 
-	[SerializeField]
-	internal UnityEvent<Carryier> onGotGrabbed = new();
+	public UnityEvent<Carryier> onGotCarried = new();
 
-	[SerializeField]
-	internal UnityEvent<Carryier> onGotUnGrabbed = new();
+	public UnityEvent<Carryier> onGotUnCarried = new();
 
 
 	#endregion
 
 
+	// Initialize
+	private void OnEnable()
+	{
+		Unlock();
+	}
+
+
 	// Update
 	public bool TryGetCarriedBy(Carryier requester)
-	{
-		return requester.TryCarryCarryable(this);
-	}
+		=> requester.TryCarry(this);
 
-	public void GetUnCarriedFromCurrent()
-	{
-		if (CurrentCarryier)
-			CurrentCarryier.UnCarryCarryable(this);
-	}
+	public void GetUnCarriedBy(Carryier requester)
+		=> requester.UnCarry(this);
 
 	public bool IsAbleToGetCarriedBy(Carryier requester)
+		=> requester.IsAbleToCarryCarryable(this);
+
+	public void Lock()
 	{
-		return requester.IsAbleToCarryCarryable(this);
+		_isAbleToGetCarried = false;
+	}
+
+	public void Unlock()
+	{
+		_isAbleToGetCarried = true;
 	}
 
 
 	// Dispose
 	private void OnDisable()
 	{
-		GetUnCarriedFromCurrent();
+		Lock();
 	}
 }
 

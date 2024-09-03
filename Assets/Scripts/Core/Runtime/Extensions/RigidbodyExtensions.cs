@@ -2,50 +2,66 @@ using UnityEngine;
 
 public static class RigidbodyExtensions
 {
-	/// <summary> Checks if rigidbody <b>exactly</b> moving </summary>
-	public static bool IsMoving(this Rigidbody rigidbody)
+	/// <summary> Transforms position from local space to world space. Takes position, rotation and scale into account </summary>
+	public static Vector3 RigidbodyPoint(this Rigidbody a, Vector3 targetPos)
 	{
-		return rigidbody.linearVelocity.sqrMagnitude != 0;
+		return VectorUtils.VectorPoint(a.position, a.rotation, a.transform.lossyScale, targetPos);
 	}
 
-	/// <summary> Checks if rigidbody <b>exactly</b> rotating </summary>
-	public static bool IsRotating(this Rigidbody rigidbody)
+	/// <summary> Transforms position from local space to world space. Takes position and rotation into account only </summary>
+	public static Vector3 RigidbodyPointUnscaled(this Rigidbody a, Vector3 targetPos)
 	{
-		return rigidbody.angularVelocity.sqrMagnitude != 0;
+		return VectorUtils.VectorPoint(a.position, a.rotation, Vector3.one, targetPos);
 	}
 
-	/// <summary> Checks if rigidbody <b>exactly</b> moving or rotating </summary>
-	public static bool IsMovingOrRotating(this Rigidbody rigidbody)
+	/// <summary> Transforms position from world space to local space. Takes position, rotation and scale into account </summary>
+	public static Vector3 InverseRigidbodyPoint(this Rigidbody a, Vector3 targetPos)
 	{
-		return IsMoving(rigidbody) || IsRotating(rigidbody);
+		return VectorUtils.InverseVectorPoint(a.position, a.rotation, a.transform.lossyScale, targetPos);
 	}
 
-	/// <summary> Checks if rigidbody moving more than a <b>threshold</b> </summary>
+	/// <summary> Transforms position from world space to local space. Takes position and rotation into account only </summary>
+	public static Vector3 InverseRigidbodyPointUnscaled(this Rigidbody a, Vector3 targetPos)
+	{
+		return VectorUtils.InverseVectorPoint(a.position, a.rotation, Vector3.one, targetPos);
+	}
+
+	public static Vector3 LocalLinearVelocity(this Rigidbody a)
+	{
+		return a.transform.InverseTransformDirection(a.linearVelocity);
+	}
+
+	/// <summary> Checks if <b>exactly</b> moving </summary>
+	public static bool IsMoving(this Rigidbody a)
+	{
+		return a.linearVelocity.sqrMagnitude != 0f;
+	}
+
+	/// <summary> Checks if <b>exactly</b> rotating </summary>
+	public static bool IsRotating(this Rigidbody a)
+	{
+		return a.angularVelocity.sqrMagnitude != 0f;
+	}
+
+	/// <summary> Checks if moving more than a <b>threshold</b> </summary>
 	/// <param name="allowedDifference"> Default value is <see cref="Vector3.kEpsilon"/> </param>
-	public static bool IsMovingApproximately(this Rigidbody rigidbody, float allowedDifference = Vector3.kEpsilon)
+	public static bool IsMovingApproximately(this Rigidbody a, float allowedDifference = Vector3.kEpsilon)
 	{
-		return !VectorExtensions.Approximately(rigidbody.linearVelocity, Vector3.zero, allowedDifference);
+		return !VectorExtensions.Approximately(a.linearVelocity, Vector3.zero, allowedDifference);
 	}
 
-	/// <summary> Checks if rigidbody rotating more than a <b>threshold</b> </summary>
+	/// <summary> Checks if rotating more than a <b>threshold</b> </summary>
 	/// <param name="allowedDifference"> Default value is <see cref="Vector3.kEpsilon"/> </param>
-	public static bool IsRotatingApproximately(this Rigidbody rigidbody, float allowedDifference = Vector3.kEpsilon)
+	public static bool IsRotatingApproximately(this Rigidbody a, float allowedDifference = Vector3.kEpsilon)
 	{
-		return !VectorExtensions.Approximately(rigidbody.angularVelocity, Vector3.zero, allowedDifference);
-	}
-
-	/// <summary> Checks if rigidbody moving or rotating more than a <b>threshold</b> </summary>
-	/// <param name="allowedDifference"> Default value is <see cref="Vector3.kEpsilon"/> </param>
-	public static bool IsMovingOrRotatingApproximately(this Rigidbody rigidbody, float allowedDifference = Vector3.kEpsilon)
-	{
-		return IsMovingApproximately(rigidbody, allowedDifference) || IsRotatingApproximately(rigidbody, allowedDifference);
+		return !VectorExtensions.Approximately(a.angularVelocity, Vector3.zero, allowedDifference);
 	}
 
 	/// <summary> Use when temporary limitation wanted </summary>
-	/// <param name="maxVelocity"> If you dont want velocity limit on specific axises, set them to zero </param>
-	public static void LimitLinearVelocity(this Rigidbody rigidbody, Vector3 maxVelocity)
+	/// <remarks> If you dont want velocity limit on specific axises, set them to zero </remarks>
+	public static void LimitLinearVelocity(this Rigidbody a, Vector3 maxVelocity)
 	{
-		var updatedLinearVelocity = rigidbody.linearVelocity;
+		var updatedLinearVelocity = a.linearVelocity;
 
 		if (maxVelocity.x > 0f)
 			updatedLinearVelocity.x = Mathf.Clamp(updatedLinearVelocity.x, -maxVelocity.x, maxVelocity.x);
@@ -56,6 +72,6 @@ public static class RigidbodyExtensions
 		if (maxVelocity.z > 0f)
 			updatedLinearVelocity.z = Mathf.Clamp(updatedLinearVelocity.z, -maxVelocity.z, maxVelocity.z);
 
-		rigidbody.linearVelocity = updatedLinearVelocity;
+		a.linearVelocity = updatedLinearVelocity;
 	}
 }

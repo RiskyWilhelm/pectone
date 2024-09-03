@@ -53,7 +53,7 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 
 	public void SwitchToUnblockState()
 	{
-		if (State is PlayerStateType.Blocked)
+		if (_state is PlayerStateType.Blocked)
 			State = PlayerStateType.Idle;
 	}
 
@@ -61,7 +61,7 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 
 	protected void DoState()
 	{
-		switch (State)
+		switch (_state)
 		{
 			case PlayerStateType.Idle:
 			DoIdle();
@@ -148,7 +148,7 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 
 	protected void DoStateFixed()
 	{
-		switch (State)
+		switch (_state)
 		{
 			case PlayerStateType.Idle:
 			DoIdleFixed();
@@ -235,7 +235,7 @@ public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 
 	protected void DoStateLate()
 	{
-		switch (State)
+		switch (_state)
 		{
 			case PlayerStateType.Idle:
 			DoIdleLate();

@@ -1,4 +1,3 @@
-using Unity.Cinemachine;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,21 +7,20 @@ public abstract partial class PlayerBase : MonoBehaviour
 	#region PlayerBase Movement
 
 	[SerializeField]
-	[Min(0)]
-	protected Vector3 size = new(1f, 1f, 1f);
-
-	[SerializeField]
-	protected float acceptedDistanceForIsGroundedCheck = 1f;
+	private Rigidbody _selfRigidbody;
 
 	public LayerMask isGroundedLayerMask = Layers.Mask.Ground;
+
+	public float isGroundedCheckRadius = 1f;
+
+	public float isGroundedCheckDistance = 1f;
 
 	private bool _isGrounded;
 
 	private RaycastHit _currentGroundedHit;
 
-	[field: SerializeField]
 	public Rigidbody SelfRigidbody
-	{ get; protected set; }
+		=> _selfRigidbody;
 
 	public bool IsGrounded
 	{
@@ -41,10 +39,8 @@ public abstract partial class PlayerBase : MonoBehaviour
 	}
 
 	public RaycastHit CurrentIsGroundedHit
-	{
-		get => _currentGroundedHit;
-		protected set => _currentGroundedHit = value;
-	}
+		=> _currentGroundedHit;
+
 
 	#endregion
 
@@ -59,48 +55,12 @@ public abstract partial class PlayerBase : MonoBehaviour
 	// Update
 	protected virtual void Update()
 	{
-		IsGrounded = IsGroundedAtVector(SelfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
+		IsGrounded = IsGroundedAtVector(_selfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
 	}
 
 	public bool IsGroundedAtVector(Vector3 worldPosition, out RaycastHit hit, int layerMask = Layers.Mask.Ground)
 	{
-		var castExtent = (size * 0.25f);
-		var sizeExtent = (size * 0.5f);
-		var currentRotation = SelfRigidbody.rotation;
-
-		// Check the 6 main direction because the player may be floating in the air
-		(Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float maxDistance, int layerMask) castSettings =
-			(worldPosition, new Vector3(castExtent.x - 0.05f, castExtent.y - 0.05f, castExtent.z - 0.05f), currentRotation.DownDirection(), currentRotation, sizeExtent.y + acceptedDistanceForIsGroundedCheck, layerMask);
-
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		castSettings.direction = currentRotation.UpDirection();
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		castSettings.direction = currentRotation.RightDirection();
-		castSettings.maxDistance = sizeExtent.x + acceptedDistanceForIsGroundedCheck;
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		castSettings.direction = currentRotation.LeftDirection();
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		castSettings.direction = currentRotation.BackDirection();
-		castSettings.maxDistance = sizeExtent.z + acceptedDistanceForIsGroundedCheck;
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		castSettings.direction = currentRotation.ForwardDirection();
-		if (DoCast(castSettings, out hit))
-			return true;
-
-		return false;
-
-		static bool DoCast((Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float maxDistance, int layerMask) castSettings, out RaycastHit hit)
-			=> Physics.BoxCast(castSettings.center, castSettings.halfExtents, castSettings.direction, out hit, castSettings.orientation, castSettings.maxDistance, castSettings.layerMask);
+		return Physics.SphereCast(worldPosition, isGroundedCheckRadius, _selfRigidbody.rotation.DownDirection(), out hit, isGroundedCheckDistance, layerMask);
 	}
 
 	protected virtual void OnGrounded()
@@ -117,33 +77,17 @@ public abstract partial class PlayerBase
 {
 	protected virtual void OnDrawGizmosSelected()
 	{
-		DrawSize();
 		DrawAcceptedDistanceForGroundedCheck();
-	}
-
-	private void DrawSize()
-	{
-		Gizmos.color = new Color(1f, 0f, 0f, 0.1f);
-		Gizmos.DrawCube(this.transform.position, size);
-
-		Handles.Label(this.transform.position + (size * 0.5f), "Size");
 	}
 
 	private void DrawAcceptedDistanceForGroundedCheck()
 	{
-		// BoxCast wont give good results when it's Y size is defined.You can debug that in Analysis>Physics
-		var sizeExtent = (size * 0.5f);
-		var currentRotation = SelfRigidbody.rotation;
-
+		var currentRotation = _selfRigidbody.rotation;
 		Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.DownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.UpDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.RightDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.LeftDirection() * (sizeExtent.x + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.BackDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
-		Gizmos.DrawLine(this.transform.position, this.transform.position + (currentRotation.ForwardDirection() * (sizeExtent.z + acceptedDistanceForIsGroundedCheck)));
 
-		Handles.Label(this.transform.position + (currentRotation.DownDirection() * (sizeExtent.y + acceptedDistanceForIsGroundedCheck)), "Grounded Check");
+		Gizmos.DrawSphere(this.transform.position, isGroundedCheckRadius);
+		Gizmos.DrawSphere(this.transform.position + (currentRotation.DownDirection() * isGroundedCheckDistance), isGroundedCheckRadius);
+		Handles.Label(this.transform.position + (currentRotation.DownDirection() * isGroundedCheckDistance), "Grounded Check");
 	}
 }
 

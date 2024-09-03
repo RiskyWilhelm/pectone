@@ -51,11 +51,11 @@ public sealed partial class SavedInstantiation : MonoBehaviourSaveDataController
 			var handle = Addressables.InstantiateAsync(childData.instantiationAssetReference, childData.instantiationParams.worldPosition, childData.instantiationParams.worldRotation, trackHandle: true);
 
 			handle.Completed +=
-				(handle) => InitializeInstantiated(handle, childData, new GuidSerializable(iteratedChildGuid));
+				(handle) => InitializeInstantiated(handle, childData, iteratedChildGuid);
 		}
 	}
 
-	private void InitializeInstantiated(AsyncOperationHandle<GameObject> handle, InstantiationData data, GuidSerializable gameDataGuid)
+	private void InitializeInstantiated(AsyncOperationHandle<GameObject> handle, InstantiationData data, string gameDataGuid)
 	{
 		var isSucceeded = (handle.Status == AsyncOperationStatus.Succeeded);
 		var isInstantiatedSavedInstantiation = handle.Result.TryGetComponent<SavedInstantiation>(out SavedInstantiation instantiated);
@@ -79,14 +79,14 @@ public sealed partial class SavedInstantiation : MonoBehaviourSaveDataController
 	public void AttachToHandler(SavedInstantiation newParentHandler)
 	{
 		if (isRootData)
-			throw new ($"You cannot attach data '{this.gameDataGuid}' to any handler");
+			throw new ($"You cannot attach root data '{this.gameDataGuid}' to any handler");
 
 		if (_parentHandler)
-			_parentHandler.Data.childInstantiationDataRefsSet.Remove(gameDataGuid.ToString());
+			_parentHandler.Data.childInstantiationDataRefsSet.Remove(gameDataGuid);
 
 		if (newParentHandler)
 		{
-			newParentHandler.Data.childInstantiationDataRefsSet.Add(gameDataGuid.ToString());
+			newParentHandler.Data.childInstantiationDataRefsSet.Add(gameDataGuid);
 			this.transform.SetParent(newParentHandler.transform, true);
 		}
 		else

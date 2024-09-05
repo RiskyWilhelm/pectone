@@ -23,20 +23,7 @@ public abstract partial class PlayerBase : MonoBehaviour
 		=> _selfRigidbody;
 
 	public bool IsGrounded
-	{
-		get => _isGrounded;
-		private set
-		{
-			if (_isGrounded != value)
-			{
-				_isGrounded = value;
-				if (_isGrounded)
-					OnGrounded();
-				else
-					OnUnGrounded();
-			}
-		}
-	}
+		=> _isGrounded;
 
 	public RaycastHit CurrentIsGroundedHit
 		=> _currentGroundedHit;
@@ -55,7 +42,21 @@ public abstract partial class PlayerBase : MonoBehaviour
 	// Update
 	protected virtual void Update()
 	{
-		IsGrounded = IsGroundedAtVector(_selfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
+		UpdateGroundedState();
+	}
+
+	protected void UpdateGroundedState()
+	{
+		var currentGroundedState = IsGroundedAtVector(_selfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
+
+		if (_isGrounded != currentGroundedState)
+		{
+			_isGrounded = currentGroundedState;
+			if (_isGrounded)
+				OnGrounded();
+			else
+				OnUnGrounded();
+		}
 	}
 
 	public bool IsGroundedAtVector(Vector3 worldPosition, out RaycastHit hit, int layerMask = Layers.Mask.Ground)

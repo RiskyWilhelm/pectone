@@ -1,9 +1,11 @@
 using System;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 public static class BoundsUtils
 {
+	private static readonly System.Random randomizer = new();
+
+
 	/// <returns> A random point inside or on the surface of a box with size 1.0 </returns>
 	public static Vector3 InsideUnitBox()
 	{
@@ -20,9 +22,9 @@ public static class BoundsUtils
 	{
 		Vector3 extents = (size * 0.5f);
 		Vector3 localPoint = new(
-			Random.Range(-extents.x, extents.x),
-			Random.Range(-extents.y, extents.y),
-			Random.Range(-extents.z, extents.z)
+			randomizer.NextFloat(-extents.x, extents.x),
+			randomizer.NextFloat(-extents.y, extents.y),
+			randomizer.NextFloat(-extents.z, extents.z)
 		);
 
 		localPoint += center;
@@ -36,9 +38,9 @@ public static class BoundsUtils
 		var onUnitBoxUniformly = OnUnitBox();
 		var onDismissedBox = Vector3.Scale(onUnitBoxUniformly, dismissBoxSize);
 		var outerBox = new Vector3(
-			MathF.Sqrt(Random.Range(0f, 1f)) * outerBoxSize.x,
-			MathF.Sqrt(Random.Range(0f, 1f)) * outerBoxSize.y,
-			MathF.Sqrt(Random.Range(0f, 1f)) * outerBoxSize.z
+			MathF.Sqrt(randomizer.NextFloat(0f, 1f)) * outerBoxSize.x,
+			MathF.Sqrt(randomizer.NextFloat(0f, 1f)) * outerBoxSize.y,
+			MathF.Sqrt(randomizer.NextFloat(0f, 1f)) * outerBoxSize.z
 		); ;
 
 		Vector3 localPoint = onDismissedBox + Vector3.Scale(onUnitBoxUniformly, outerBox);
@@ -50,25 +52,25 @@ public static class BoundsUtils
 	{
 		Vector3 extents = (size * 0.5f);
 		Vector3 localPoint = default;
-		var randomFaceDirection = Random.Range(1, 7);
+		var randomFaceDirection = randomizer.NextFloat(1, 7);
 
 		switch (randomFaceDirection)
 		{
 			// Up
 			case 1:
 			localPoint = new(
-				Random.Range(-extents.x, extents.x),
+				randomizer.NextFloat(-extents.x, extents.x),
 				extents.y,
-				Random.Range(-extents.z, extents.z)
+				randomizer.NextFloat(-extents.z, extents.z)
 			);
 			break;
 
 			// Down
 			case 2:
 			localPoint = new(
-				Random.Range(-extents.x, extents.x),
+				randomizer.NextFloat(-extents.x, extents.x),
 				-extents.y,
-				Random.Range(-extents.z, extents.z)
+				randomizer.NextFloat(-extents.z, extents.z)
 			);
 			break;
 
@@ -76,8 +78,8 @@ public static class BoundsUtils
 			case 3:
 			localPoint = new(
 				extents.x,
-				Random.Range(-extents.y, extents.y),
-				Random.Range(-extents.z, extents.z)
+				randomizer.NextFloat(-extents.y, extents.y),
+				randomizer.NextFloat(-extents.z, extents.z)
 			);
 			break;
 
@@ -85,16 +87,16 @@ public static class BoundsUtils
 			case 4:
 			localPoint = new(
 				-extents.x,
-				Random.Range(-extents.y, extents.y),
-				Random.Range(-extents.z, extents.z)
+				randomizer.NextFloat(-extents.y, extents.y),
+				randomizer.NextFloat(-extents.z, extents.z)
 			);
 			break;
 
 			// Forward
 			case 5:
 			localPoint = new(
-				Random.Range(-extents.x, extents.x),
-				Random.Range(-extents.y, extents.y),
+				randomizer.NextFloat(-extents.x, extents.x),
+				randomizer.NextFloat(-extents.y, extents.y),
 				extents.z
 			);
 			break;
@@ -102,8 +104,8 @@ public static class BoundsUtils
 			// Backward
 			case 6:
 			localPoint = new(
-				Random.Range(-extents.x, extents.x),
-				Random.Range(-extents.y, extents.y),
+				randomizer.NextFloat(-extents.x, extents.x),
+				randomizer.NextFloat(-extents.y, extents.y),
 				-extents.z
 			);
 			break;

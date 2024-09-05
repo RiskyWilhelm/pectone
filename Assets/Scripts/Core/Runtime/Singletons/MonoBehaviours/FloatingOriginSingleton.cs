@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -55,6 +56,7 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 				isRequestedSyncedTransformShift = false;
 			}
 
+			ShiftCineCameras(syncedShiftPosition);
 			onAfterOriginShiftedFixed?.Invoke(syncedShiftPosition);
 			syncedShiftPosition = Vector3.zero;
 		}
@@ -92,6 +94,15 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 			iteratedTransform.position -= shiftPosition;
 	}
 
+	private void ShiftCineCameras(Vector3 shiftPosition)
+	{
+		for (int i = 0; i < CinemachineBrain.ActiveBrainCount; i++)
+		{
+			var iteratedVCamera = (CinemachineVirtualCameraBase)CinemachineBrain.GetActiveBrain(i).ActiveVirtualCamera;
+			iteratedVCamera.OnTargetObjectWarped(iteratedVCamera.LookAt ?? iteratedVCamera.transform, -shiftPosition);
+		}
+	}
+
 	/// <summary> Synces with the Rigidbody position changes </summary>
 	private void ShiftTransformsInSync()
 	{
@@ -102,6 +113,13 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 	{
 		if (doShiftingEveryAllowedDistance)
 		{
+			var currentVelocity = alignRigidbody.linearVelocity;
+			if ((currentVelocity.x >= allowedDistance) || (currentVelocity.y >= allowedDistance) || (currentVelocity.z >= allowedDistance))
+			{
+				Debug.LogWarningFormat("{0}'s speed more than floating origin's allowed distance! Limiting its speed to allowed distance", alignRigidbody.gameObject.name);
+				alignRigidbody.LimitLinearVelocity(new Vector3(allowedDistance, allowedDistance, allowedDistance));
+			}
+
 			var currentPosition = alignRigidbody.position.Abs();
 			if ((currentPosition.x >= allowedDistance) || (currentPosition.y >= allowedDistance) || (currentPosition.z >= allowedDistance))
 				Shift();

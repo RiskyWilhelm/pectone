@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 6157001808051862263}
   - component: {fileID: 2971197686210810036}
   - component: {fileID: 8195716281122774410}
-  - component: {fileID: 1347931818640055041}
-  - component: {fileID: 6338104037060879061}
+  - component: {fileID: -1834109787028553588}
   m_Layer: 0
   m_Name: DeadPlanetSeed
   m_TagString: Untagged
@@ -76,13 +75,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06342c00a1083314da575eb168f32a0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selfRigidbody: {fileID: 2971197686210810036}
+  _selfRigidbody: {fileID: 2971197686210810036}
   selfGrowObject: {fileID: 7235501315358537881}
   growSpeed: 0.1
   desiredGrowRadius: 10
   currentGrowRadius: 1
-  selfSave: {fileID: 1347931818640055041}
---- !u!114 &1347931818640055041
+  isPlanted: 0
+--- !u!114 &-1834109787028553588
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,74 +90,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 120280778503431459}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cfd06dd419639c45a21304dd2843e2b, type: 3}
+  m_Script: {fileID: 11500000, guid: 36133165c90e5904abe22e6582f91d9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gameDataGuid:
-    guidLow: 5700705096035020606
-    guidHigh: 9850180437145198481
-  _data:
-    instantiationAssetReference:
-      m_AssetGUID: 73a746da4cd23ea48b3640604f36b6c4
-      m_SubObjectName: 
-      m_SubObjectGUID: 
-      m_SubObjectType: 
-      m_EditorAssetChanged: 0
-  onLoadedData:
-    m_PersistentCalls:
-      m_Calls: []
-  onLoadedLastData:
-    m_PersistentCalls:
-      m_Calls: []
-  _innerData:
-    currentGrowRadius: 0
-  onLoadedInnerData:
-    m_PersistentCalls:
-      m_Calls: []
-  onLoadedLastInnerData:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 8195716281122774410}
-        m_TargetAssemblyTypeName: DeadPlanetSeed, Pectone.DeadPlanet.Runtime
-        m_MethodName: OnLastDataLoaded
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!114 &6338104037060879061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 120280778503431459}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa7234773f42ade46bbe96cccdeaaeb8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  onRaised:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 8195716281122774410}
-        m_TargetAssemblyTypeName: DeadPlanetSeed, Pectone.DeadPlanet.Runtime
-        m_MethodName: OnGroundCollisionEnter
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-  listeners: []
-  selfCollidersList: []
+  selfRigidbody: {fileID: 2971197686210810036}
 --- !u!1 &3943098328489178980
 GameObject:
   m_ObjectHideFlags: 0

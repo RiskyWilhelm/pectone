@@ -3,11 +3,11 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[CustomEditor(typeof(GravitionalPull))]
-public class GravitionalPullEditor : Editor
+[CustomEditor(typeof(RigidbodySpawner))]
+public class RigidbodySpawnerEditor : Editor
 {
-	private GravitionalPull Target
-		=> (target as GravitionalPull);
+	private RigidbodySpawner Target
+		=> (target as RigidbodySpawner);
 
 
 	// Initialize
@@ -34,15 +34,15 @@ public class GravitionalPullEditor : Editor
 		EditorGUI.BeginChangeCheck();
 
 		var currentRotation = Quaternion.identity;
-		var isUsingOriginForPull = (Target.pullDirection == Vector3.zero);
+		var isUsingOriginForPull = (Target.pushForce == Vector3.zero);
 		if (!isUsingOriginForPull)
-			currentRotation = Quaternion.LookRotation(Target.pullDirection);
+			currentRotation = Quaternion.LookRotation(Target.pushForce);
 
 		Quaternion newRotation = Handles.FreeRotateHandle(currentRotation, Target.transform.position, HandleUtility.GetHandleSize(Target.transform.position) * 0.25f);
 		if (EditorGUI.EndChangeCheck())
 		{
 			Undo.RecordObject(Target, "Changed Pull Direction");
-			Target.pullDirection = newRotation.ForwardDirection();
+			Target.pushForce = newRotation.ForwardDirection() * Target.pushForce.magnitude;
 		}
 
 		// Draw the direction
@@ -52,7 +52,7 @@ public class GravitionalPullEditor : Editor
 		Handles.ArrowHandleCap(
 			0,
 			Target.transform.position,
-			!Target.isPullDirectionWorldAxis ? (Target.transform.rotation * newRotation) : newRotation,
+			!Target.isPushWorldAxis ? (Target.transform.rotation * newRotation) : newRotation,
 			HandleUtility.GetHandleSize(Target.transform.position) * 1.25f,
 			EventType.Repaint
 		);

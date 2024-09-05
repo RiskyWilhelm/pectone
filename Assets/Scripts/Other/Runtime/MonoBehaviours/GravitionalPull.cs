@@ -7,11 +7,13 @@ public sealed partial class GravitionalPull : MonoBehaviour
 	#region GravitionalPull Gravity
 
 	[Tooltip("Optional. If zero, a direction of registered rigibody to transform position (origin) is used")]
-	public Vector3 pullDirectionWorldEuler;
+	public Vector3 pullDirection;
+
+	public ForceMode forceMode = ForceMode.Acceleration;
+	
+	public float pullGravity = 9.81f;
 
 	public bool isPullDirectionWorldAxis;
-
-	public float pullGravity = 9.81f;
 
 
 	#endregion
@@ -37,26 +39,20 @@ public sealed partial class GravitionalPull : MonoBehaviour
 
 	private void PullControlledRigidbodiesFixed()
 	{
-		var isUsingOriginForPull = (pullDirectionWorldEuler == Vector3.zero);
-		var pullDirection = default(Vector3);
-
-		if (!isUsingOriginForPull)
-		{
-			if (isPullDirectionWorldAxis)
-				pullDirection = Quaternion.Euler(pullDirectionWorldEuler).ForwardDirection();
-			else
-				pullDirection = this.transform.rotation * Quaternion.Euler(pullDirectionWorldEuler).ForwardDirection();
-		}
+		var calculatedPull = pullDirection;
+		var isUsingOriginForPull = (pullDirection == Vector3.zero);
+		if (!isUsingOriginForPull && !isPullDirectionWorldAxis)
+			calculatedPull = this.transform.rotation * pullDirection;
 
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)
         {
-			if (iteratedRigidbody.isKinematic || iteratedRigidbody.IsSleeping())
+			if (iteratedRigidbody.isKinematic)
 				return;
 
 			if (isUsingOriginForPull)
-				pullDirection = iteratedRigidbody.transform.position.GetWorldDirectionTo(this.transform.position);
+				calculatedPull = iteratedRigidbody.transform.position.GetWorldDirectionTo(this.transform.position);
 
-			iteratedRigidbody.AddForce(pullDirection * (pullGravity * iteratedRigidbody.mass));
+			iteratedRigidbody.AddForce(calculatedPull * pullGravity, forceMode);
         }
     }
 
@@ -69,15 +65,14 @@ public sealed partial class GravitionalPull : MonoBehaviour
 	// WARNING: Support implementation for custom Events
 	public void OnRigidbodyTriggerEnter(Collider other)
 	{
-		var attachedRigidbody = other.attachedRigidbody;
-		if (attachedRigidbody && !attachedRigidbody.isKinematic)
-			registeredRigibodiesSet.Add(other.attachedRigidbody);
+		if (other.attachedRigidbody)
+			RegisterChildRigidbody(other.attachedRigidbody);
 	}
 
 	public void OnRigidbodyTriggerExit(Collider other)
 	{
 		if (other.attachedRigidbody)
-			registeredRigibodiesSet.Remove(other.attachedRigidbody);
+			UnRegisterChildRigidbody(other.attachedRigidbody);
 	}
 
 
@@ -94,7 +89,7 @@ public sealed partial class GravitionalPull : MonoBehaviour
 public sealed partial class GravitionalPull
 {
 	[Header("GravitionalPull Edit")]
-	[RenameLabelTo("Is Activated Interactive Editing")]
+	[RenameLabelTo("Interactive Editing")]
 	public bool e_IsActivatedInteractiveEditing;
 }
 

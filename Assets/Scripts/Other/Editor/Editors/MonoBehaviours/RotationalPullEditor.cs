@@ -6,7 +6,8 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(RotationalPull))]
 public class RotationalPullEditor : Editor
 {
-	private RotationalPull Target => (target as RotationalPull);
+	private RotationalPull Target
+		=> (target as RotationalPull);
 
 
 	// Initialize
@@ -32,21 +33,28 @@ public class RotationalPullEditor : Editor
 
 		// Draw interactable
 		EditorGUI.BeginChangeCheck();
-		Quaternion newRotation = Handles.FreeRotateHandle(Quaternion.Euler(Target.upDirectionWorldEuler), Target.transform.position, HandleUtility.GetHandleSize(Target.transform.position) * 0.25f);
+
+		var currentRotation = Quaternion.identity;
+		var isUsingOriginForUp = (Target.upDirection == Vector3.zero);
+		if (!isUsingOriginForUp)
+			currentRotation = Quaternion.LookRotation(Target.upDirection);
+
+		Quaternion newRotation = Handles.FreeRotateHandle(currentRotation, Target.transform.position, HandleUtility.GetHandleSize(Target.transform.position) * 0.25f);
+		
 		if (EditorGUI.EndChangeCheck())
 		{
 			Undo.RecordObject(Target, "Changed Up Direction");
-			Target.upDirectionWorldEuler = newRotation.eulerAngles;
+			Target.upDirection = newRotation.ForwardDirection();
 		}
 
 		// Draw the direction
-		if (Target.upDirectionWorldEuler == Vector3.zero)
+		if (isUsingOriginForUp)
 			return;
 
 		Handles.ArrowHandleCap(
 			0,
 			Target.transform.position,
-			Target.isUpDirectionWorldAxis ? Quaternion.Euler(Target.upDirectionWorldEuler) : (Target.transform.rotation * Quaternion.Euler(Target.upDirectionWorldEuler)),
+			!Target.isUpDirectionWorldAxis ? (Target.transform.rotation * newRotation) : newRotation,
 			HandleUtility.GetHandleSize(Target.transform.position) * 1.25f,
 			EventType.Repaint
 		);

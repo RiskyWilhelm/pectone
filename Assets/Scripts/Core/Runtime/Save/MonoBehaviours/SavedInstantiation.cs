@@ -58,11 +58,16 @@ public sealed partial class SavedInstantiation : MonoBehaviourSaveDataController
 	private void InitializeInstantiated(AsyncOperationHandle<GameObject> handle, InstantiationData data, string gameDataGuid)
 	{
 		var isSucceeded = (handle.Status == AsyncOperationStatus.Succeeded);
-		var isInstantiatedSavedInstantiation = handle.Result.TryGetComponent<SavedInstantiation>(out SavedInstantiation instantiated);
-
-		if (!isSucceeded || !isInstantiatedSavedInstantiation)
+		if (!isSucceeded)
 		{
-			Debug.LogErrorFormat("AssetReference root does not contains {0} or somehow handle is not succeeded", nameof(SavedInstantiation));
+			handle.Release();
+			return;
+		}
+
+		var isInstantiatedCorrectType = handle.Result.TryGetComponent<SavedInstantiation>(out SavedInstantiation instantiated);
+		if (!isInstantiatedCorrectType)
+		{
+			Debug.LogErrorFormat("AssetReference root does not contains {0}. Releasing the handle", nameof(SavedInstantiation));
 			handle.Release();
 			return;
 		}

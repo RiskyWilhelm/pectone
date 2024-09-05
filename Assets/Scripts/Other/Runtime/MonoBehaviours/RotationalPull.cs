@@ -7,11 +7,11 @@ public sealed partial class RotationalPull : MonoBehaviour
 	#region RotationalPull Rotation
 
 	[Tooltip("Optional. If zero, a direction of transform position (origin) to registered rigibody is used")]
-	public Vector3 upDirectionWorldEuler;
+	public Vector3 upDirection;
 
 	public bool isUpDirectionWorldAxis;
 
-	public float equalizeUpRotationsPower = 90f;
+	public float equalizeUpPower = 90f;
 
 
 	#endregion
@@ -37,41 +37,40 @@ public sealed partial class RotationalPull : MonoBehaviour
 
 	private void PullControlledRigidbodiesFixed()
 	{
-		var isUsingOriginForUp = (upDirectionWorldEuler == Vector3.zero);
-		var upDirection = default(Vector3);
-
-		if (!isUsingOriginForUp)
-		{
-			if (isUpDirectionWorldAxis)
-				upDirection = Quaternion.Euler(upDirectionWorldEuler).ForwardDirection();
-			else
-				upDirection = this.transform.rotation * Quaternion.Euler(upDirectionWorldEuler).ForwardDirection();
-		}
+		var calculatedUp = upDirection;
+		var isUsingOriginForUp = (upDirection == Vector3.zero);
+		if (!isUsingOriginForUp && !isUpDirectionWorldAxis)
+			calculatedUp = this.transform.rotation * upDirection;
 
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)
         {
-			if (iteratedRigidbody.isKinematic || iteratedRigidbody.IsSleeping())
+			if (iteratedRigidbody.isKinematic)
 				return;
 
 			if (isUsingOriginForUp)
-				upDirection = this.transform.position.GetWorldDirectionTo(iteratedRigidbody.transform.position);
+				calculatedUp = this.transform.position.GetWorldDirectionTo(iteratedRigidbody.transform.position);
 
-			iteratedRigidbody.rotation = iteratedRigidbody.rotation.EqualizeUpRotationWithDirection(upDirection, powerDelta: equalizeUpRotationsPower * Time.deltaTime);
+			iteratedRigidbody.rotation = iteratedRigidbody.rotation.EqualizeUpRotationWithDirection(calculatedUp, powerDelta: equalizeUpPower * Time.deltaTime);
         }
     }
+
+	public void RegisterChildRigidbody(Rigidbody childRigidbody)
+		=> registeredRigibodiesSet.Add(childRigidbody);
+
+	public void UnRegisterChildRigidbody(Rigidbody childRigidbody)
+		=> registeredRigibodiesSet.Remove(childRigidbody);
 
 	// WARNING: Support implementation for custom Events
 	public void OnRigidbodyTriggerEnter(Collider other)
 	{
-		var attachedRigidbody = other.attachedRigidbody;
-		if (attachedRigidbody && !attachedRigidbody.isKinematic)
-			registeredRigibodiesSet.Add(other.attachedRigidbody);
+		if (other.attachedRigidbody)
+			RegisterChildRigidbody(other.attachedRigidbody);
 	}
 
 	public void OnRigidbodyTriggerExit(Collider other)
 	{
 		if (other.attachedRigidbody)
-			registeredRigibodiesSet.Remove(other.attachedRigidbody);
+			UnRegisterChildRigidbody(other.attachedRigidbody);
 	}
 
 
@@ -88,7 +87,7 @@ public sealed partial class RotationalPull : MonoBehaviour
 public sealed partial class RotationalPull
 {
 	[Header("RotationalPull Edit")]
-	[RenameLabelTo("Activate Interactive Editing")]
+	[RenameLabelTo("Interactive Editing")]
 	public bool e_IsActivatedInteractiveEditing;
 }
 

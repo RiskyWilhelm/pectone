@@ -1,28 +1,11 @@
-using System.Collections.Generic;
 using UnityEngine;
 
-public sealed partial class OnCollisionEnterEvent : MonoBehaviourEvent<Collision>
+public sealed partial class OnCollisionEnterEvent : MonoBehaviourEvent<Collision>, ICollisionEnterListener
 {
-	[Header("OnCollisionEnterEvent Chain")]
-	#region OnCollisionEnterEvent Chain
-
-	[SerializeField]
-	private List<Collider> selfCollidersList = new();
-
-
-	#endregion
-
-
 	// Update
-	private void OnCollisionEnter(Collision collision)
-    {
-        Raise(collision);
-	}
-
-	internal void OnParentCollisionEnter(Collision collision, Collider contactThisCollider)
+	public void OnCollisionEnter(Collision collision)
 	{
-		if (selfCollidersList.Contains(contactThisCollider))
-			OnCollisionEnter(collision);
+		Raise(collision);
 	}
 }
 

@@ -3,7 +3,9 @@ using UnityEngine.SceneManagement;
 
 public sealed partial class SceneControllerPersistentSingleton : MonoBehaviourSingletonBase<SceneControllerPersistentSingleton>
 {
-	public static bool IsActiveSceneChanging { get; private set; }
+	public static bool IsActiveSceneChanging
+	{ get; private set; }
+
 
 	// Initialize
 	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]

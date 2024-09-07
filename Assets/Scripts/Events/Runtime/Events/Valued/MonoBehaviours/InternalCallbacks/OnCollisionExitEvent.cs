@@ -1,12 +1,16 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public sealed partial class OnCollisionExitEvent : MonoBehaviourEvent<Collision>
+public sealed partial class OnCollisionExitEvent : MonoBehaviourEvent<Collision>, ICollisionExitListener
 {
 	// Update
-	private void OnCollisionExit(Collision collision)
+	public void OnCollisionExit(Collision collision)
     {
         Raise(collision);
     }
+
+	public void OnCollisionExitDisabled(Collider thisCollider, Collider otherCollider)
+	{ }
 }
 
 

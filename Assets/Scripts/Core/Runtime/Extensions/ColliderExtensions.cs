@@ -2,6 +2,9 @@ using UnityEngine;
 
 public static class ColliderExtensions
 {
+	public static Component GetBody(this Collider a)
+		=> (a.attachedRigidbody as Component) ?? (a.attachedArticulationBody as Component);
+
 	public static Vector3 GetRandomPoint(this Collider a)
 	{
         switch (a)

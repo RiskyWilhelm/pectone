@@ -3,11 +3,11 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-[CustomEditor(typeof(GravitionalPull))]
-public class GravitionalPullEditor : Editor
+[CustomEditor(typeof(ForcePull))]
+public class ForcePullEditor : Editor
 {
-	private GravitionalPull Target
-		=> (target as GravitionalPull);
+	private ForcePull Target
+		=> (target as ForcePull);
 
 
 	// Initialize

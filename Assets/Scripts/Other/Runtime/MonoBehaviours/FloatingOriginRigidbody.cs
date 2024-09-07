@@ -22,6 +22,9 @@ public sealed partial class FloatingOriginRigidbody : MonoBehaviour
 	// Dispose
 	private void OnDisable()
 	{
+		if (GameControllerPersistentSingleton.IsQuitting)
+			return;
+
 		FloatingOriginSingleton.Instance.UnRegisterChildRigidbody(selfRigidbody);
 	}
 }

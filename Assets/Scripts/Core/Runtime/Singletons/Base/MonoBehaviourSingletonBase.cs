@@ -13,7 +13,7 @@ public abstract partial class MonoBehaviourSingletonBase<SingletonType> : MonoBe
         {
 			if (GameControllerPersistentSingleton.IsQuitting)
 				throw new Exception(string.Format("Cannot access {0} when quitting the game." +
-					" You are probably trying to instantiate or access in OnDestroy() or OnDisable().", typeof(SingletonType).Name));
+					" You are probably trying to instantiate or access in OnDestroy() or OnDisable(). You should fix your script.", typeof(SingletonType).Name));
 
 			if (_instance == null)
                 FindOrTryCreateSingleton();
@@ -51,7 +51,7 @@ public abstract partial class MonoBehaviourSingletonBase<SingletonType> : MonoBe
         {
             throw new Exception(string.Format("Cant create Singleton {0}." +
                 " You are probably trying to instantiate or access in OnDestroy() or OnDisable()." +
-                " This occurs when changing scenes nor quitting the game or when there is a living instance exists", typeof(SingletonType).Name));
+				" This occurs when changing scenes nor quitting the game or when there is a living instance exists. You should fix your script.", typeof(SingletonType).Name));
         }
 
         CreateSingleton();

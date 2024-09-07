@@ -45,6 +45,7 @@ public abstract partial class PlayerBase : MonoBehaviour
 		UpdateGroundedState();
 	}
 
+	// TODO: Change with OnCollisionStay and normal checks
 	protected void UpdateGroundedState()
 	{
 		var currentGroundedState = IsGroundedAtVector(_selfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
@@ -76,6 +77,7 @@ public abstract partial class PlayerBase : MonoBehaviour
 
 public abstract partial class PlayerBase
 {
+	// Update
 	protected virtual void OnDrawGizmosSelected()
 	{
 		DrawAcceptedDistanceForGroundedCheck();

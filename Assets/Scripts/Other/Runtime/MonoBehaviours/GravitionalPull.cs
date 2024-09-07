@@ -1,24 +1,18 @@
+using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
 public sealed partial class GravitionalPull : MonoBehaviour
 {
 	[Header("GravitionalPull Gravity")]
 	#region GravitionalPull Gravity
 
-	[Tooltip("Optional. If zero, a direction of registered rigibody to transform position (origin) is used")]
-	public Vector3 pullDirection;
+	public const float GRAVITY_CONSTANT = 16_870.75f;
 
-	public ForceMode forceMode = ForceMode.Acceleration;
-	
-	public float pullGravity = 9.81f;
-
-	public bool isPullDirectionWorldAxis;
-
-
-	#endregion
-
-	#region GravitionalPull Other
+	[SerializeField]
+	private Rigidbody _selfRigidbody;
 
 	private readonly HashSet<Rigidbody> registeredRigibodiesSet = new();
 
@@ -27,34 +21,41 @@ public sealed partial class GravitionalPull : MonoBehaviour
 
 
 	// Update
-	private void Update()
-	{
-		registeredRigibodiesSet.RemoveWhere(x => !x);
-	}
-
 	private void FixedUpdate()
 	{
-		PullControlledRigidbodiesFixed();
+		PullToOriginFixed();
 	}
 
-	private void PullControlledRigidbodiesFixed()
+	private void PullToOriginFixed()
 	{
-		var calculatedPull = pullDirection;
-		var isUsingOriginForPull = (pullDirection == Vector3.zero);
-		if (!isUsingOriginForPull && !isPullDirectionWorldAxis)
-			calculatedPull = this.transform.rotation * pullDirection;
-
+		var isNullDetected = false;
+		var selfPosition = _selfRigidbody.position;
+		var m1 = _selfRigidbody.mass;
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)
-        {
-			if (iteratedRigidbody.isKinematic)
+		{
+			if (!iteratedRigidbody)
+			{
+				isNullDetected = true;
+				continue;
+			}
+
+			var m2 = iteratedRigidbody.mass;
+			var direction = (selfPosition - iteratedRigidbody.position);
+			var directionLength = direction.magnitude; // Also distance
+
+			// The case where direction is zero and potentially retun NaN due to normalization
+			if (directionLength < Vector3.kEpsilon)
 				return;
 
-			if (isUsingOriginForPull)
-				calculatedPull = iteratedRigidbody.transform.position.GetWorldDirectionTo(this.transform.position);
+			var forceMagnitude = GRAVITY_CONSTANT * (m1 * m2) / MathF.Pow(directionLength, 2f); // https://en.wikipedia.org/wiki/Newton%27s_law_of_universal_gravitation 2
+			var force = (direction / directionLength) * forceMagnitude;
 
-			iteratedRigidbody.AddForce(calculatedPull * pullGravity, forceMode);
-        }
-    }
+			iteratedRigidbody.AddForce(force, ForceMode.Acceleration);
+		}
+
+		if (isNullDetected)
+			registeredRigibodiesSet.RemoveWhere(x => !x);
+	}
 
 	public void RegisterChildRigidbody(Rigidbody childRigidbody)
 		=> registeredRigibodiesSet.Add(childRigidbody);
@@ -65,12 +66,14 @@ public sealed partial class GravitionalPull : MonoBehaviour
 	// WARNING: Support implementation for custom Events
 	public void OnRigidbodyTriggerEnter(Collider other)
 	{
+		//Debug.LogWarning($"Enter {other.name}");
 		if (other.attachedRigidbody)
 			RegisterChildRigidbody(other.attachedRigidbody);
 	}
 
 	public void OnRigidbodyTriggerExit(Collider other)
 	{
+		//Debug.LogWarning($"Exit {other.name}");
 		if (other.attachedRigidbody)
 			UnRegisterChildRigidbody(other.attachedRigidbody);
 	}
@@ -88,9 +91,19 @@ public sealed partial class GravitionalPull : MonoBehaviour
 
 public sealed partial class GravitionalPull
 {
-	[Header("GravitionalPull Edit")]
-	[RenameLabelTo("Interactive Editing")]
-	public bool e_IsActivatedInteractiveEditing;
+	// Update
+	private void OnDrawGizmosSelected()
+	{
+		DrawMass();
+	}
+
+	private void DrawMass()
+	{
+		Gizmos.color = new Color(1f, 0f, 0f, 0.25f);
+
+		Gizmos.DrawWireSphere(this.transform.position, _selfRigidbody.mass);
+		Handles.Label(this.transform.position + (Vector3.one * (_selfRigidbody.mass * 0.5f)), "Mass");
+	}
 }
 
 

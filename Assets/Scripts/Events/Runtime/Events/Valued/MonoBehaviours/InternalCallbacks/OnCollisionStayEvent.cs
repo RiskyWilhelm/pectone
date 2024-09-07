@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public sealed partial class OnCollisionStayEvent : MonoBehaviourEvent<Collision>
+public sealed partial class OnCollisionStayEvent : MonoBehaviourEvent<Collision>, ICollisionStayListener
 {
 	// Update
-	private void OnCollisionStay(Collision collision)
+	public void OnCollisionStay(Collision collision)
     {
 		Raise(collision);
 	}

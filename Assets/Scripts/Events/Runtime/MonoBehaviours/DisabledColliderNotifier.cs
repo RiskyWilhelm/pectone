@@ -5,7 +5,7 @@ using UnityEngine.Pool;
 
 /// <summary> Allows other collider's and attached rigidbody's <see cref="ICollisionExitListener"/> and <see cref="ITriggerExitDisabledListener"/>(s) to receive <see cref="ICollisionExitListener.OnCollisionExit(Collision)"/> and <see cref="ITriggerExitDisabledListener"/> events </summary>
 [DisallowMultipleComponent]
-public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollisionEnterListener, ICollisionStayListener, ICollisionExitListener
+public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollisionEnterListener, ICollisionStayListener, ICollisionExitListener, ICollisionExitDisabledListener
 {
 	private readonly Dictionary<Collider, DisabledColliderListenerTrigger> interactingTriggersDict = new(); // Dict<this, other>
 
@@ -21,7 +21,10 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 
 	private void CheckTriggerColliderStates()
 	{
-		var cachedInvalidList = ListPool<Collider>.Get();
+		var cachedDict = DictionaryPool<Collider, DisabledColliderListenerTrigger>.Get();
+
+		foreach (var iteratedCollisionPair in interactingTriggersDict)
+			cachedDict[iteratedCollisionPair.Key] = iteratedCollisionPair.Value;
 
 		foreach (var iteratedTriggerPair in interactingTriggersDict)
 		{
@@ -31,28 +34,31 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			if (!thisCollider || !otherTrigger)
 			{
 				Debug.LogError("You must not destroy colliders invidually. Unable to send any events", this);
-				cachedInvalidList.Add(thisCollider);
+				interactingTriggersDict.Remove(thisCollider);
 				continue;
 			}
 
 			if (!thisCollider.enabled)
 			{
-				cachedInvalidList.Add(thisCollider);
+				interactingTriggersDict.Remove(thisCollider);
 				NotifyDisabledTrigger(thisCollider, otherTrigger);
 			}
+
+			if (!otherTrigger.enabled)
+				interactingCollisionsDict.Remove(thisCollider);
 		}
 
-		foreach (var iteratedInvalidCollider in cachedInvalidList)
-			interactingTriggersDict.Remove(iteratedInvalidCollider);
-
-		ListPool<Collider>.Release(cachedInvalidList);
+		DictionaryPool<Collider, DisabledColliderListenerTrigger>.Release(cachedDict);
 	}
 
 	private void CheckCollisionColliderStates()
 	{
-		var cachedInvalidList = ListPool<Collider>.Get();
+		var cachedDict = DictionaryPool<Collider, Collider>.Get();
 
 		foreach (var iteratedCollisionPair in interactingCollisionsDict)
+			cachedDict[iteratedCollisionPair.Key] = iteratedCollisionPair.Value;
+
+		foreach (var iteratedCollisionPair in cachedDict)
 		{
 			var thisCollider = iteratedCollisionPair.Value;
 			var otherCollider = iteratedCollisionPair.Key;
@@ -60,22 +66,22 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			if (!thisCollider || !otherCollider)
 			{
 				Debug.LogError("You must not destroy colliders invidually. Unable to send any events", this);
-				cachedInvalidList.Add(otherCollider);
+				interactingCollisionsDict.Remove(otherCollider);
 				continue;
 			}
 
 			if (!thisCollider.enabled)
 			{
-				cachedInvalidList.Add(otherCollider);
+				interactingCollisionsDict.Remove(otherCollider);
 				NotifyDisabledCollision(otherCollider, thisCollider);
 				NotifyDisabledCollision(thisCollider, otherCollider);
 			}
+
+			if (!otherCollider.enabled)
+				interactingCollisionsDict.Remove(otherCollider);
 		}
 
-		foreach (var iteratedInvalidCollider in cachedInvalidList)
-			interactingCollisionsDict.Remove(iteratedInvalidCollider);
-
-		ListPool<Collider>.Release(cachedInvalidList);
+		DictionaryPool<Collider, Collider>.Release(cachedDict);
 	}
 
 	internal void OnEnterTrigger(Collider thisCollider, DisabledColliderListenerTrigger otherTrigger)
@@ -105,19 +111,48 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 		interactingCollisionsDict.Remove(collision.collider);
 	}
 
+	public void OnCollisionExitDisabled(Collider thisCollider, Collider otherCollider)
+	{
+		interactingCollisionsDict.Remove(otherCollider);
+	}
+
 
 	// Dispose
 	private void OnDisable()
 	{
-		NotifyAllColliders();
+		NotifyAllTriggerColliders();
+		NotifyAllCollisionColliders();
 		interactingTriggersDict.Clear();
 		interactingCollisionsDict.Clear();
 	}
 
-	private void NotifyAllColliders()
+	private void NotifyAllTriggerColliders()
 	{
-		foreach (var iteratedCollisionPair in interactingCollisionsDict)
+		var cachedDict = DictionaryPool<Collider, DisabledColliderListenerTrigger>.Get();
+
+		foreach (var iteratedCollisionPair in interactingTriggersDict)
+			cachedDict[iteratedCollisionPair.Key] = iteratedCollisionPair.Value;
+
+		foreach (var iteratedTriggerPair in cachedDict)
 		{
+			var thisCollider = iteratedTriggerPair.Key;
+			var otherTrigger = iteratedTriggerPair.Value;
+
+			NotifyDisabledTrigger(thisCollider, otherTrigger);
+		}
+
+		DictionaryPool<Collider, DisabledColliderListenerTrigger>.Release(cachedDict);
+	}
+
+	private void NotifyAllCollisionColliders()
+	{
+		var cachedDict = DictionaryPool<Collider, Collider>.Get();
+
+		foreach (var iteratedCollisionPair in interactingCollisionsDict)
+			cachedDict[iteratedCollisionPair.Key] = iteratedCollisionPair.Value;
+
+        foreach (var iteratedCollisionPair in cachedDict)
+        {
 			var thisCollider = iteratedCollisionPair.Value;
 			var otherCollider = iteratedCollisionPair.Key;
 
@@ -125,13 +160,7 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			NotifyDisabledCollision(otherCollider, thisCollider);
 		}
 
-		foreach (var iteratedTriggerPair in interactingTriggersDict)
-		{
-			var thisCollider = iteratedTriggerPair.Key;
-			var otherTrigger = iteratedTriggerPair.Value;
-
-			NotifyDisabledTrigger(thisCollider, otherTrigger);
-		}
+		DictionaryPool<Collider, Collider>.Release(cachedDict);
 	}
 
 	private void NotifyDisabledTrigger(Collider thisCollider, DisabledColliderListenerTrigger otherTrigger)
@@ -139,32 +168,36 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 		var cachedList = ListPool<ITriggerExitDisabledListener>.Get();
 		otherTrigger.GetComponents<ITriggerExitDisabledListener>(cachedList);
 
-		try
+		foreach (var iteratedReceiver in cachedList)
 		{
-			foreach (var iteratedReceiver in cachedList)
+			try
+			{
 				iteratedReceiver.OnTriggerExitDisabled(thisCollider);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message);
+			}
+		}
 
-			// By default, unity sends message to the attached body's game object too. This will notify to collided collider's body
-			var otherAttachedBody = otherTrigger.GetComponent<Collider>().GetBody();
-			if (!otherAttachedBody)
-				return;
+		// By default, unity sends message to the attached body's game object too. Next code part will attempt to notify collided collider's body
+		if (otherTrigger.GetComponent<Collider>().TryGetBodyGameObject(out GameObject otherAttachedBodyGO, declineColliderGameObject: true))
+			return;
 
-			var otherAttachedBodyGO = otherAttachedBody.gameObject;
-			if (otherTrigger.gameObject == otherAttachedBodyGO)
-				return;
-
-			otherAttachedBodyGO.GetComponents<ITriggerExitDisabledListener>(cachedList);
-			foreach (var iteratedReceiver in cachedList)
+		otherAttachedBodyGO.GetComponents<ITriggerExitDisabledListener>(cachedList);
+		foreach (var iteratedReceiver in cachedList)
+		{
+			try
+			{
 				iteratedReceiver.OnTriggerExitDisabled(thisCollider);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message);
+			}
 		}
-		catch (Exception e)
-		{
-			Debug.LogError(e.Message);
-		}
-		finally
-		{
-			ListPool<ITriggerExitDisabledListener>.Release(cachedList);
-		}
+
+		ListPool<ITriggerExitDisabledListener>.Release(cachedList);
 	}
 
 	private void NotifyDisabledCollision(Collider thisCollider, Collider otherCollider)
@@ -172,32 +205,36 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 		var cachedList = ListPool<ICollisionExitDisabledListener>.Get();
 		otherCollider.GetComponents<ICollisionExitDisabledListener>(cachedList);
 
-		try
+        foreach (var iteratedReceiver in cachedList)
 		{
-            foreach (var iteratedReceiver in cachedList)
+			try
+			{
 				iteratedReceiver.OnCollisionExitDisabled(otherCollider, thisCollider);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message);
+			}
+		}
 
-			// By default, unity sends message to the attached body's game object too. This will notify to collided collider's body
-			var otherAttachedBody = otherCollider.GetBody();
-			if (!otherAttachedBody)
-				return;
+		// By default, unity sends message to the attached body's game object too. Next code part will attempt to notify collided collider's body
+		if (!otherCollider.TryGetBodyGameObject(out GameObject otherAttachedBodyGO, declineColliderGameObject: true))
+			return;
 
-			var otherAttachedBodyGO = otherAttachedBody.gameObject;
-			if (otherCollider.gameObject == otherAttachedBodyGO)
-				return;
-
-			otherAttachedBodyGO.GetComponents<ICollisionExitDisabledListener>(cachedList);
-			foreach (var iteratedReceiver in cachedList)
+		otherAttachedBodyGO.GetComponents<ICollisionExitDisabledListener>(cachedList);
+		foreach (var iteratedReceiver in cachedList)
+		{
+			try
+			{
 				iteratedReceiver.OnCollisionExitDisabled(otherCollider, thisCollider);
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e.Message);
+			}
 		}
-		catch (Exception e)
-		{
-			Debug.LogError(e.Message);
-		}
-		finally
-		{
-			ListPool<ICollisionExitDisabledListener>.Release(cachedList);
-		}
+		
+		ListPool<ICollisionExitDisabledListener>.Release(cachedList);
 	}
 }
 

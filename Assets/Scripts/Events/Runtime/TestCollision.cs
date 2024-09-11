@@ -1,23 +1,27 @@
+using System.Collections;
 using UnityEngine;
 
 public sealed partial class TestCollision : MonoBehaviour
 {
 	// Initialize
+	IEnumerator Start()
+	{
+		yield return null;
+
+		this.destroyCancellationToken.Register((obj) => Debug.Log(obj), null, true);
+		Destroy(this);
+	}
+
 
 
 	// Update
-	private void OnCollisionEnter(Collision collision)
-	{
-		Debug.LogWarning($"Enter Collision {collision.collider.name}", collision.collider);
-	}
-
-	private void OnCollisionExit(Collision collision)
-	{
-		Debug.LogWarning($"Exit Collision {collision.collider.name}", collision.collider);
-	}
 
 
 	// Dispose
+	private void OnDestroy()
+	{
+		Debug.LogFormat("OnDestroy called {0}", this.GetType());
+	}
 }
 
 

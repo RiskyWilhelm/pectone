@@ -9,6 +9,24 @@ public abstract partial class PlayerBase : MonoBehaviour
 	[SerializeField]
 	private Rigidbody _selfRigidbody;
 
+	
+
+	private RaycastHit _currentGroundedHit;
+
+	public Rigidbody SelfRigidbody
+		=> _selfRigidbody;
+
+	
+
+	public RaycastHit CurrentIsGroundedHit
+		=> _currentGroundedHit;
+
+
+	#endregion
+
+	[Header("PlayerBase Grounded/UnGrounded")]
+	#region PlayerBase Grounded/UnGrounded
+
 	public LayerMask isGroundedLayerMask = Layers.Mask.Ground;
 
 	public float isGroundedCheckRadius = 1f;
@@ -17,16 +35,8 @@ public abstract partial class PlayerBase : MonoBehaviour
 
 	private bool _isGrounded;
 
-	private RaycastHit _currentGroundedHit;
-
-	public Rigidbody SelfRigidbody
-		=> _selfRigidbody;
-
 	public bool IsGrounded
 		=> _isGrounded;
-
-	public RaycastHit CurrentIsGroundedHit
-		=> _currentGroundedHit;
 
 
 	#endregion
@@ -45,8 +55,8 @@ public abstract partial class PlayerBase : MonoBehaviour
 		UpdateGroundedState();
 	}
 
-	// TODO: Change with OnCollisionStay and normal checks
-	protected void UpdateGroundedState()
+	// TODO: Replace with collision stay angle check: https://discussions.unity.com/t/oncollisionstay-exit-problem-solved/625321/2
+	public void UpdateGroundedState()
 	{
 		var currentGroundedState = IsGroundedAtVector(_selfRigidbody.position, out _currentGroundedHit, isGroundedLayerMask);
 

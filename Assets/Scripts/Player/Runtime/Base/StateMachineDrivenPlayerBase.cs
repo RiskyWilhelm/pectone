@@ -1,3 +1,4 @@
+/// TODO: Take different state types and convert methods to abstract
 public abstract partial class StateMachineDrivenPlayerBase : PlayerBase
 {
 	#region StateMachineDrivenPlayerBase Other

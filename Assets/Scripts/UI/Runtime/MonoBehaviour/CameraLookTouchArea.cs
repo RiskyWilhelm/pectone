@@ -12,23 +12,8 @@ public sealed partial class CameraLookTouchArea : MonoBehaviour, IDragHandler, I
 
 	#endregion
 
-	#region CameraLookTouchArea Other
-
-	private PointerEventData currentActiveEventData;
-
-
-	#endregion
-
 
 	// Update
-	private void Update()
-	{
-		if (currentActiveEventData is null)
-			return;
-
-		onPointerMovedWithDelta?.Invoke(GetScaledDelta(currentActiveEventData.delta));
-	}
-
 	/// <summary> Acts like a normalizer for delta movement vector </summary>
 	private Vector2 GetScaledDelta(Vector2 value)
 	{
@@ -43,14 +28,12 @@ public sealed partial class CameraLookTouchArea : MonoBehaviour, IDragHandler, I
 
 	public void OnDrag(PointerEventData eventData)
 	{
-		if (currentActiveEventData != eventData)
-			currentActiveEventData = eventData;
+		onPointerMovedWithDelta?.Invoke(GetScaledDelta(eventData.delta));
 	}
 
 	public void OnEndDrag(PointerEventData eventData)
 	{
 		onPointerMovedWithDelta?.Invoke(Vector2.zero);
-		currentActiveEventData = null;
 	}
 }
 

@@ -5,7 +5,7 @@ using UnityEngine.Pool;
 
 /// <summary> Allows other collider's and attached rigidbody's <see cref="ICollisionExitListener"/> and <see cref="ITriggerExitDisabledListener"/>(s) to receive <see cref="ICollisionExitListener.OnCollisionExit(Collision)"/> and <see cref="ITriggerExitDisabledListener"/> events </summary>
 [DisallowMultipleComponent]
-public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollisionEnterListener, ICollisionStayListener, ICollisionExitListener, ICollisionExitDisabledListener
+public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollisionListener
 {
 	private readonly Dictionary<Collider, DisabledColliderListenerTrigger> interactingTriggersDict = new(); // Dict<this, other>
 
@@ -193,7 +193,7 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e.Message);
+				Debug.LogException(e);
 			}
 		}
 
@@ -213,7 +213,7 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e.Message);
+				Debug.LogException(e);
 			}
 		}
 

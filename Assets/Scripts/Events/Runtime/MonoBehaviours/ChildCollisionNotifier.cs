@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -16,15 +17,19 @@ public sealed partial class ChildCollisionNotifier : MonoBehaviour
 		var cachedList = ListPool<ICollisionEnterListener>.Get();
 		selfChildCollider.GetComponents<ICollisionEnterListener>(true, cachedList);
 
-		try
+		foreach (var iteratedReceiver in cachedList)
 		{
-			foreach (var iteratedReceiver in cachedList)
+			try
+			{
 				iteratedReceiver.OnCollisionEnter(collision);
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
-		finally
-		{
-			ListPool<ICollisionEnterListener>.Release(cachedList);
-		}
+		
+		ListPool<ICollisionEnterListener>.Release(cachedList);
 	}
 
 	private void NotifyChildCollisionStay(Collider selfChildCollider, Collision collision)
@@ -32,15 +37,19 @@ public sealed partial class ChildCollisionNotifier : MonoBehaviour
 		var cachedList = ListPool<ICollisionStayListener>.Get();
 		selfChildCollider.GetComponents<ICollisionStayListener>(true, cachedList);
 
-		try
+		foreach (var iteratedReceiver in cachedList)
 		{
-			foreach (var iteratedReceiver in cachedList)
+			try
+			{
 				iteratedReceiver.OnCollisionStay(collision);
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
-		finally
-		{
-			ListPool<ICollisionStayListener>.Release(cachedList);
-		}
+		
+		ListPool<ICollisionStayListener>.Release(cachedList);
 	}
 
 	private void NotifyChildCollisionExit(Collider selfChildCollider, Collision collision)
@@ -48,15 +57,19 @@ public sealed partial class ChildCollisionNotifier : MonoBehaviour
 		var cachedList = ListPool<ICollisionExitListener>.Get();
 		selfChildCollider.GetComponents<ICollisionExitListener>(true, cachedList);
 
-		try
+		foreach (var iteratedReceiver in cachedList)
 		{
-			foreach (var iteratedReceiver in cachedList)
+			try
+			{
 				iteratedReceiver.OnCollisionExit(collision);
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
-		finally
-		{
-			ListPool<ICollisionExitListener>.Release(cachedList);
-		}
+
+		ListPool<ICollisionExitListener>.Release(cachedList);
 	}
 
 	private void OnCollisionEnter(Collision collision)

@@ -98,6 +98,15 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 
 	#endregion
 
+	[Header("Player Dash")]
+	#region Player Dash
+
+	[SerializeField]
+	private float dashForce;
+
+
+	#endregion
+
 	[Header("Player Flying")]
 	#region Player Flying
 
@@ -219,6 +228,7 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 		relativeMovementTransform = unGroundedCamera.transform;
 	}
 
+	// WARNING: Custom event support
 	public void OnMovementJoystickInputChanged(Vector2 input)
     {
 		if (input == Vector2.zero)
@@ -245,6 +255,12 @@ public sealed partial class Player : StateMachineDrivenPlayerBase
 			movementController.SetMovingDirectionRelativeToTransform(relativeMovementTransform, inputForward);
 			movementRigidbody.rotation = movementRigidbody.rotation.RotateTowardsDirection(movementController.NormalizedMovingDirection, relativeMovementTransform.up, (AcceptedRotationDirectionAxisType.X | AcceptedRotationDirectionAxisType.Z));
 		}
+	}
+
+	public void Dash()
+	{
+		var movementRigidbody = movementController.SelfRigidbody;
+		movementRigidbody.AddRelativeForce(dashForce * Vector3.forward, ForceMode.Acceleration);
 	}
 }
 

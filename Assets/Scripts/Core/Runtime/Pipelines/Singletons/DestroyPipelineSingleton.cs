@@ -19,10 +19,11 @@ public sealed partial class DestroyPipelineSingleton : MonoBehaviourSingletonBas
 
         foreach (var iteratedOnBeforeDestroyPair in cachedDict)
         {
-			if (!iteratedOnBeforeDestroyPair.Key)
+			var iteratedObject = iteratedOnBeforeDestroyPair.Key;
+			if (!iteratedObject)
 			{
 				Debug.LogWarningFormat("A destroyed object is detected. You should use pipeline to destroy objects if you listen {0}. Therefore, using pipeline for destroying always is recommended", nameof(IBeforeDestroyListener.OnBeforeDestroy));
-				onBeforeDestroyListenersDict.Remove(iteratedOnBeforeDestroyPair.Key);
+				onBeforeDestroyListenersDict.Remove(iteratedObject);
 			}
         }
 
@@ -31,7 +32,7 @@ public sealed partial class DestroyPipelineSingleton : MonoBehaviourSingletonBas
 
 	public void Listen(IBeforeDestroyListener listener, Object other)
 	{
-		var initializedValue = onBeforeDestroyListenersDict.TryGetValue(other, out _);
+		var initializedValue = onBeforeDestroyListenersDict.ContainsKey(other);
 		if (!initializedValue)
 			onBeforeDestroyListenersDict[other] = new HashSet<IBeforeDestroyListener>();
 

@@ -26,7 +26,7 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 		foreach (var iteratedCollisionPair in interactingTriggersDict)
 			cachedDict[iteratedCollisionPair.Key] = iteratedCollisionPair.Value;
 
-		foreach (var iteratedTriggerPair in interactingTriggersDict)
+		foreach (var iteratedTriggerPair in cachedDict)
 		{
 			var thisCollider = iteratedTriggerPair.Key;
 			var otherTrigger = iteratedTriggerPair.Value;
@@ -176,12 +176,12 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e.Message);
+				Debug.LogException(e);
 			}
 		}
 
 		// By default, unity sends message to the attached body's game object too. Next code part will attempt to notify collided collider's body
-		if (otherTrigger.GetComponent<Collider>().TryGetBodyGameObject(out GameObject otherAttachedBodyGO, declineColliderGameObject: true))
+		if (!otherTrigger.GetComponent<Collider>().TryGetBodyGameObject(out GameObject otherAttachedBodyGO, declineColliderGameObject: true))
 			return;
 
 		otherAttachedBodyGO.GetComponents<ITriggerExitDisabledListener>(cachedList);
@@ -230,7 +230,7 @@ public sealed partial class DisabledColliderNotifier : MonoBehaviour, ICollision
 			}
 			catch (Exception e)
 			{
-				Debug.LogError(e.Message);
+				Debug.LogException(e);
 			}
 		}
 		

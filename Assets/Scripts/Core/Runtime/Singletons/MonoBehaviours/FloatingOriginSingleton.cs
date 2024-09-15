@@ -20,11 +20,9 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 
 	private Vector3 syncedShiftPosition;
 
-	private bool isRequestedSyncedTransformShift;
+	private readonly HashSet<Rigidbody> registeredRigidbodiesSet = new();
 
-	private readonly HashSet<Rigidbody> rigidbodiesSet = new();
-
-	private readonly HashSet<Transform> transformsSet = new();
+	private readonly HashSet<Transform> registeredTransformsSet = new();
 
 
 	#endregion
@@ -32,7 +30,7 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 	[Header("FloatingOriginSingleton Events")]
 	#region FloatingOriginSingleton Events
 
-	public UnityEvent onBeforeOriginShifted = new();
+	public UnityEvent<Vector3> onBeforeOriginShiftedFixed = new();
 
 	public UnityEvent<Vector3> onAfterOriginShiftedFixed = new();
 
@@ -50,64 +48,27 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 	{
 		if (syncedShiftPosition != Vector3.zero)
 		{
-			if (isRequestedSyncedTransformShift)
-			{
-				ShiftTransforms(syncedShiftPosition);
-				isRequestedSyncedTransformShift = false;
-			}
+			onBeforeOriginShiftedFixed?.Invoke(syncedShiftPosition);
 
+			ShiftTransforms(syncedShiftPosition);
 			ShiftCineCameras(syncedShiftPosition);
+
 			onAfterOriginShiftedFixed?.Invoke(syncedShiftPosition);
 			syncedShiftPosition = Vector3.zero;
+			
 		}
+	}
+
+	public void Shift(Vector3 shiftPosition)
+	{
+		syncedShiftPosition += shiftPosition;
+
+		// This change will be there in the next FixedUpdate
+		ShiftRigidbodies(shiftPosition);
 	}
 
 	public void Shift()
-	{
-		onBeforeOriginShifted?.Invoke();
-		var shiftPosition = alignRigidbody.position;
-		syncedShiftPosition += shiftPosition;
-
-		ShiftTransformsInSync();
-		ShiftRigidbodies(shiftPosition);
-		alignRigidbody.position = Vector3.zero;
-	}
-
-	private void ShiftRigidbodies(Vector3 shiftPosition)
-	{
-		worldOriginRigidbody.position -= shiftPosition;
-
-		rigidbodiesSet.RemoveWhere((x) => !x);
-		foreach (var iteratedRigidbody in rigidbodiesSet)
-		{
-			if (!iteratedRigidbody.IsMovingApproximately())
-				iteratedRigidbody.Sleep();
-
-			iteratedRigidbody.position -= shiftPosition;
-		}
-	}
-
-	private void ShiftTransforms(Vector3 shiftPosition)
-	{
-		transformsSet.RemoveWhere((x) => !x);
-		foreach (var iteratedTransform in transformsSet)
-			iteratedTransform.position -= shiftPosition;
-	}
-
-	private void ShiftCineCameras(Vector3 shiftPosition)
-	{
-		for (int i = 0; i < CinemachineBrain.ActiveBrainCount; i++)
-		{
-			var iteratedVCamera = (CinemachineVirtualCameraBase)CinemachineBrain.GetActiveBrain(i).ActiveVirtualCamera;
-			iteratedVCamera.OnTargetObjectWarped(iteratedVCamera.LookAt ?? iteratedVCamera.transform, -shiftPosition);
-		}
-	}
-
-	/// <summary> Synces with the Rigidbody position changes </summary>
-	private void ShiftTransformsInSync()
-	{
-		isRequestedSyncedTransformShift = true;
-	}
+		=> Shift(alignRigidbody.position);
 
 	private void TryAutoShift()
 	{
@@ -126,18 +87,45 @@ public sealed partial class FloatingOriginSingleton : MonoBehaviourSingletonBase
 		}
 	}
 
+	private void ShiftRigidbodies(Vector3 shiftPosition)
+	{
+		worldOriginRigidbody.position -= shiftPosition;
+
+		registeredRigidbodiesSet.RemoveWhere((x) => !x);
+		foreach (var iteratedRigidbody in registeredRigidbodiesSet)
+			iteratedRigidbody.position -= shiftPosition;
+
+		alignRigidbody.position = Vector3.zero;
+	}
+
+	private void ShiftTransforms(Vector3 shiftPosition)
+	{
+		registeredTransformsSet.RemoveWhere((x) => !x);
+		foreach (var iteratedTransform in registeredTransformsSet)
+			iteratedTransform.position -= shiftPosition;
+	}
+
+	private void ShiftCineCameras(Vector3 shiftPosition)
+	{
+		for (int i = 0; i < CinemachineBrain.ActiveBrainCount; i++)
+		{
+			var iteratedVCamera = (CinemachineVirtualCameraBase)CinemachineBrain.GetActiveBrain(i).ActiveVirtualCamera;
+			iteratedVCamera.OnTargetObjectWarped(iteratedVCamera.LookAt ?? iteratedVCamera.transform, -shiftPosition);
+		}
+	}
+
 	public void RegisterChildRigidbody(Rigidbody requester)
-		=> rigidbodiesSet.Add(requester);
+		=> registeredRigidbodiesSet.Add(requester);
 
 	public void UnRegisterChildRigidbody(Rigidbody requester)
-		=> rigidbodiesSet.Remove(requester);
+		=> registeredRigidbodiesSet.Remove(requester);
 
 	/// <remarks> Not recommended to use </remarks>
 	public void RegisterTransform(Transform requester)
-		=> transformsSet.Add(requester);
+		=> registeredTransformsSet.Add(requester);
 
 	public void UnRegisterTransform(Transform requester)
-		=> transformsSet.Remove(requester);
+		=> registeredTransformsSet.Remove(requester);
 }
 
 

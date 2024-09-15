@@ -31,6 +31,7 @@ public sealed partial class GravitionalPull : MonoBehaviour
 		var isNullDetected = false;
 		var selfPosition = _selfRigidbody.position;
 		var m1 = _selfRigidbody.mass;
+
 		foreach (var iteratedRigidbody in registeredRigibodiesSet)
 		{
 			if (!iteratedRigidbody)
